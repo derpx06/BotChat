@@ -20,10 +20,3 @@ data class ResponseData(
     val formatted: String
 )
 
-// UI Model
-data class ChatMessage(
-    val content: String,
-    val isUser: Boolean,
-    val timestamp: Long = System.currentTimeMillis(),
-    val id: String
-)
