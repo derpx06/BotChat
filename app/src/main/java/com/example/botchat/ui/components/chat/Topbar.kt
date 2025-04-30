@@ -1,19 +1,18 @@
 package com.example.botchat.ui.components.chat
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,67 +21,112 @@ import com.example.botchat.R
 import com.example.botchat.ui.theme.*
 
 @Composable
-fun TopBar(onSettingsClick: () -> Unit, isDarkTheme: Boolean) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .drawWithContent {
-                drawContent()
-                drawRect(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(StarlightWhite.copy(alpha = 0.1f), StarlightWhite.copy(alpha = 0.05f))
-                    ),
-                    alpha = 0.5f
-                )
-                drawRect(
-                    brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
-                    topLeft = Offset(0f, size.height - 2f),
-                    size = androidx.compose.ui.geometry.Size(size.width, 2f)
-                )
-            },
-        shape = ReverseRoundedShape(),
-        color = if (isDarkTheme) CosmicPurple.copy(alpha = 0.9f) else LightSecondary.copy(alpha = 0.8f)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(ReverseRoundedShape())
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "AI Assistant",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = if (isDarkTheme) StarlightWhite else Black,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                val infiniteTransition = rememberInfiniteTransition()
-                val angle by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 360f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(8000, easing = LinearEasing)
-                    )
-                )
-                IconButton(onSettingsClick) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_star),
-                        contentDescription = "Logo",
-                        tint = if (isDarkTheme) NeonCyan else Black,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .graphicsLayer { rotationZ = angle }
-                    )
-                }
+fun TopBar(
+    onSettingsClick: () -> Unit,
+    isDarkTheme: Boolean
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "Shimmer")
 
+    // Shimmer effect
+    val shimmerOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ShimmerOffset"
+    )
+
+    // Galaxy-style rotation and movement
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 6000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "GalaxyRotation"
+    )
+
+    val drift by infiniteTransition.animateFloat(
+        initialValue = -4f,
+        targetValue = 4f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "GalaxyDrift"
+    )
+
+    AnimatedVisibility(
+        visible = true,
+        enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(animationSpec = tween(600)),
+        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(animationSpec = tween(600))
+    ) {
+        val topBarShape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .shadow(2.dp, topBarShape, ambientColor = ElectricCyan.copy(alpha = 0.2f))
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                PureWhite.copy(alpha = 0.1f),
+                                Transparent,
+                                PureWhite.copy(alpha = 0.1f)
+                            ),
+                            start = Offset(shimmerOffset * size.width, 0f),
+                            end = Offset((shimmerOffset + 1f) * size.width, 0f)
+                        ),
+                        alpha = 0.3f
+                    )
+                    drawRect(
+                        brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
+                        topLeft = Offset(0f, size.height - 3.dp.toPx()),
+                        size = androidx.compose.ui.geometry.Size(size.width, 3.dp.toPx())
+                    )
+                },
+            shape = topBarShape,
+            color = if (isDarkTheme) StarlitPurple.copy(alpha = 0.9f) else MistGray.copy(alpha = 0.9f)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "AI Assistant",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = if (isDarkTheme) PureWhite else SlateBlack,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp
+                        )
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // Orbiting + rotating IconButton
+                    IconButton(
+                        onClick = onSettingsClick,
+                        modifier = Modifier
+                            .offset(x = 2.dp) // horizontal drift like orbit
+                            .rotate(rotation)     // continuous rotation
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_star),
+                            contentDescription = "Settings",
+                            tint = if (isDarkTheme) ElectricCyan else Purple40,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
             }
         }
     }

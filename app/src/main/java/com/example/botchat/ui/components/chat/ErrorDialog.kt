@@ -1,5 +1,10 @@
 package com.example.botchat.ui.components.chat
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,52 +22,58 @@ fun ErrorDialog(
     onDismiss: () -> Unit,
     isDarkTheme: Boolean
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Black.copy(alpha = 0.6f))
+    AnimatedVisibility(
+        visible = true,
+        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
     ) {
-        Surface(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.5f)
-                .align(Alignment.BottomCenter),
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            color = if (isDarkTheme) CosmicPurple.copy(alpha = 0.95f) else LightTertiary.copy(alpha = 0.9f)
+                .fillMaxSize()
+                .background(Black.copy(alpha = 0.6f))
         ) {
-            Column(
+            Surface(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f)
+                    .align(Alignment.BottomCenter),
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                color = if (isDarkTheme) StarlitPurple.copy(alpha = 0.95f) else SoftGray.copy(alpha = 0.9f)
             ) {
-                Column {
-                    Text(
-                        text = "Error",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontSize = 18.sp,
-                            color = if (isDarkTheme) ErrorRed else Black
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = errorMessage,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontSize = 14.sp,
-                            color = if (isDarkTheme) StarlightWhite else Black
-                        )
-                    )
-                }
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.align(Alignment.End)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "OK",
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            color = if (isDarkTheme) NeonCyan else Purple40
+                    Column {
+                        Text(
+                            text = "Error",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontSize = 18.sp,
+                                color = if (isDarkTheme) ErrorRed else SlateBlack
+                            )
                         )
-                    )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = errorMessage,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = 14.sp,
+                                color = if (isDarkTheme) PureWhite else SlateBlack
+                            )
+                        )
+                    }
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(
+                            text = "OK",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = if (isDarkTheme) ElectricCyan else Purple40
+                            )
+                        )
+                    }
                 }
             }
         }

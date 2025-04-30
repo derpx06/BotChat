@@ -34,13 +34,13 @@ class SettingViewModel : ViewModel() {
 
     var apiKey by mutableStateOf("")
         private set
-    fun updateApiKey(key: String) { // Renamed from setApiKey to avoid clash
+    fun updateApiKey(key: String) {
         apiKey = key
     }
 
     var serverUrl by mutableStateOf("https://api.example.com")
         private set
-    fun updateServerUrl(url: String) { // Renamed from setServerUrl to avoid clash
+    fun updateServerUrl(url: String) {
         serverUrl = url.trim()
     }
 

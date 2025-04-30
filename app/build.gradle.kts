@@ -48,7 +48,13 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("androidx.compose.material3:material3:1.2.0")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation ("androidx.compose.animation:animation:1.5.0")
 
+    // Add Accompanist for ModalBottomSheetLayout
+    implementation ("com.google.accompanist:accompanist-navigation-material:0.31.2-alpha")
     // Gson (you may not need this line if you are using Retrofit with the Gson converter)
     implementation("com.google.code.gson:gson:2.10.1")
     // Gson (you may not need this line if you are using Retrofit with the Gson converter)

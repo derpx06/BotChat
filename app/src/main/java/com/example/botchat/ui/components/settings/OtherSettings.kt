@@ -30,7 +30,7 @@ fun OtherSettingsTab(
         Text(
             text = "Other Settings",
             style = MaterialTheme.typography.titleLarge.copy(
-                color = if (MaterialTheme.colorScheme.background == DeepSpaceBlack) StarlightWhite else Black,
+                color = if (MaterialTheme.colorScheme.background ==MidnightBlack ) PureWhite else SlateBlack,
                 fontSize = 20.sp
             )
         )

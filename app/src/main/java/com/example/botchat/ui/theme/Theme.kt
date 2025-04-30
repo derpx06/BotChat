@@ -28,33 +28,33 @@ fun BotChatTheme(
         }
         darkTheme -> darkColorScheme(
             primary = AccentIndigo,
-            secondary = NebulaBlue,
-            tertiary = NeonCyan,
-            background = DeepSpaceBlack,
-            surface = CosmicPurple,
-            onPrimary = StarlightWhite,
+            secondary = AstralBlue,
+            tertiary = ElectricCyan,
+            background = MidnightBlack,
+            surface = StarlitPurple,
+            onPrimary = PureWhite,
             onSecondary = GalacticGray,
-            onTertiary = StarlightWhite,
-            onBackground = StarlightWhite,
-            onSurface = StarlightWhite,
+            onTertiary = PureWhite,
+            onBackground = PureWhite,
+            onSurface = PureWhite,
             primaryContainer = AccentIndigoEnd,
-            secondaryContainer = InputDark,
+            secondaryContainer = ObsidianGray,
             error = ErrorRed,
-            onError = StarlightWhite
+            onError = PureWhite
         )
         else -> lightColorScheme(
             primary = Purple40,
             secondary = PurpleGrey40,
-            tertiary = Pink40,
-            background = LightBackground,
+            tertiary = AquaTeal,
+            background = CloudWhite,
             surface = IndigoLight,
             onPrimary = White,
-            onSecondary = Black.copy(alpha = 0.7f),
-            onTertiary = Black.copy(alpha = 0.7f),
-            onBackground = Black,
-            onSurface = Black,
+            onSecondary = SlateBlack.copy(alpha = 0.7f),
+            onTertiary = SlateBlack.copy(alpha = 0.7f),
+            onBackground = SlateBlack,
+            onSurface = SlateBlack,
             primaryContainer = AccentPurple,
-            secondaryContainer = GreyLight
+            secondaryContainer = MistGray
         )
     }
 

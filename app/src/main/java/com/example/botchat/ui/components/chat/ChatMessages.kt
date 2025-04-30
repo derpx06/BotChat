@@ -1,19 +1,22 @@
 package com.example.botchat.ui.components.chat
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.Data.ChatMessage
@@ -40,16 +43,26 @@ fun ChatMessages(
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+            .shadow(3.dp, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp), ambientColor = if (isDarkTheme) ElectricCyan.copy(alpha = 0.3f) else Purple40.copy(alpha = 0.3f))
             .background(if (isDarkTheme) ChatInterfaceGradientDark else ChatInterfaceGradientLight)
+            .border(
+                width = 1.dp,
+                brush = if (isDarkTheme) Brush.linearGradient(
+                    listOf(ElectricCyan.copy(alpha = 0.2f), Transparent)
+                ) else Brush.linearGradient(
+                    listOf(Purple40.copy(alpha = 0.2f), Transparent)
+                ),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+            )
     ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 48.dp),
+                .padding(bottom = 56.dp),
             state = listState,
-            contentPadding = PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(messages) { message ->
                 ChatMessageItem(message = message, isDarkTheme = isDarkTheme)
@@ -57,8 +70,8 @@ fun ChatMessages(
             item {
                 AnimatedVisibility(
                     visible = isLoading,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
+                    enter = fadeIn(animationSpec = tween(300)) + expandVertically(),
+                    exit = fadeOut(animationSpec = tween(300)) + shrinkVertically()
                 ) {
                     ThinkingIndicator(isDarkTheme = isDarkTheme)
                 }
@@ -69,38 +82,89 @@ fun ChatMessages(
 
 @Composable
 private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean) {
-    val alignment = if (message.isUser) Alignment.End else Alignment.Start
-    val bubbleGradient = if (message.isUser) {
-        if (isDarkTheme) SendButtonGradientDark else SendButtonGradientLight
+    val isUserMessage = message.isUser
+    val alignment = if (isUserMessage) Alignment.End else Alignment.Start
+    val bubbleGradient = if (isUserMessage) {
+        if (isDarkTheme) ChatBubbleGradientDark else ChatBubbleGradientLight
     } else {
         if (isDarkTheme) InputFieldGradientDark else InputFieldGradientLight
     }
+    val bubbleShape = if (isUserMessage) {
+        RoundedCornerShape(topStart = 20.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
+    } else {
+        RoundedCornerShape(topStart = 4.dp, topEnd = 20.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
+    }
+    val infiniteTransition = rememberInfiniteTransition(label = "Glow")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "GlowAlpha"
+    )
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = if (message.isUser) 64.dp else 16.dp,
-                end = if (message.isUser) 16.dp else 64.dp
-            )
-            .wrapContentWidth(alignment)
+    AnimatedVisibility(
+        visible = true,
+        enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(animationSpec = tween(400)) +
+                scaleIn(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    ),
+                    initialScale = 0.8f
+                ),
+        exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut(animationSpec = tween(400))
     ) {
         Box(
             modifier = Modifier
-                .background(bubbleGradient, RoundedCornerShape(14.dp))
-                .padding(if (message.isUser) 8.dp else 10.dp)
-        ) {
-            Text(
-                text = message.content,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = when (message.content.length) {
-                        in 0..50 -> 14.sp
-                        in 51..100 -> 13.sp
-                        else -> 12.sp
-                    },
-                    color = if (isDarkTheme) StarlightWhite else Black
+                .fillMaxWidth()
+                .padding(
+                    start = if (isUserMessage) 48.dp else 12.dp,
+                    end = if (isUserMessage) 12.dp else 48.dp
                 )
-            )
+                .wrapContentWidth(alignment)
+        ) {
+            Box(
+                modifier = Modifier
+                    .clip(bubbleShape)
+                    .background(bubbleGradient)
+                    .border(
+                        width = 1.dp,
+                        brush = if (isDarkTheme) Brush.linearGradient(
+                            listOf(ElectricCyan.copy(alpha = glowAlpha), Transparent)
+                        ) else Brush.linearGradient(
+                            listOf(Purple40.copy(alpha = glowAlpha), Transparent)
+                        ),
+                        shape = bubbleShape
+                    )
+                    .drawWithContent {
+                        drawContent()
+                        drawRect(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    PureWhite.copy(alpha = 0.1f),
+                                    Transparent
+                                )
+                            ),
+                            alpha = 0.3f
+                        )
+                    }
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = message.content,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 15.sp,
+                        color = if (isDarkTheme) PureWhite else SlateBlack
+                    ),
+                        modifier = Modifier
+                            .then(if (!isUserMessage) Modifier.fillMaxWidth() else Modifier.wrapContentSize())
+
+                )
+
+            }
         }
     }
 }
@@ -111,19 +175,23 @@ private fun ThinkingIndicator(isDarkTheme: Boolean) {
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentWidth(Alignment.Start)
-            .background(if (isDarkTheme) InputFieldGradientDark else InputFieldGradientLight, RoundedCornerShape(14.dp))
-            .padding(10.dp),
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isDarkTheme) InputFieldGradientDark else InputFieldGradientLight)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CircularProgressIndicator(
-            modifier = Modifier.size(14.dp),
-            color = if (isDarkTheme) NeonCyan else Black,
-            strokeWidth = 1.5.dp
+            modifier = Modifier.size(16.dp),
+            color = if (isDarkTheme) ElectricCyan else Purple40,
+            strokeWidth = 2.dp
         )
         Text(
             text = "AI is thinking...",
-            style = MaterialTheme.typography.bodySmall.copy(color = if (isDarkTheme) StarlightWhite else Black)
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontSize = 13.sp,
+                color = if (isDarkTheme) PureWhite else SlateBlack
+            )
         )
     }
 }
