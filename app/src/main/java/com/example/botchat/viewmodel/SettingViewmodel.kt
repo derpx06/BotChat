@@ -4,56 +4,74 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.botchat.data.UserSettingsDataStore
+import kotlinx.coroutines.flow.Flow
 
-class SettingViewModel : ViewModel() {
+class SettingViewModel(
+    private val settingsDataStore: UserSettingsDataStore
+) : ViewModel() {
+
+    // UI toggle for showing/hiding the settings sheet
     var showSettings by mutableStateOf(false)
         private set
+
     fun toggleSettings() {
         showSettings = !showSettings
     }
 
-    var darkModeEnabled by mutableStateOf(false)
-        private set
-    fun toggleDarkMode() {
-        darkModeEnabled = !darkModeEnabled
+    // Expose each DataStore flow directly
+    val darkModeEnabled: Flow<Boolean>      = settingsDataStore.getDarkMode
+    val apiKey: Flow<String>                = settingsDataStore.getHUGGINGFACE_API
+    val selectedModelFlow: Flow<String>     = settingsDataStore.getSelectedModel
+    val apiEndpoint: Flow<String>           = settingsDataStore.getApiEndpoint
+    val systemPrompt: Flow<String>          = settingsDataStore.getSystemPrompt
+    val notificationsEnabled: Flow<Boolean> = settingsDataStore.getNotificationsEnabled
+    val historyRetentionDays: Flow<Int>     = settingsDataStore.getHistoryRetentionDays
+    val cachingEnabled: Flow<Boolean>       = settingsDataStore.getCachingEnabled
+    val analyticsEnabled: Flow<Boolean>     = settingsDataStore.getAnalyticsEnabled
+
+    // Suspend functions to update each setting
+    suspend fun updateDarkMode(enable: Boolean) {
+        settingsDataStore.updateDarkMode(enable)
     }
 
-    var notificationsEnabled by mutableStateOf(true)
-        private set
-    fun toggleNotifications() {
-        notificationsEnabled = !notificationsEnabled
+    suspend fun updateApiKey(key: String) {
+        settingsDataStore.updateHUGGINGFACE_API_KEY(key)
     }
 
-    var historyRetentionDays by mutableStateOf(7)
-        private set
-    fun updateHistoryRetentionDays(days: Int) {
-        if (days in 1..30) {
-            historyRetentionDays = days
-        }
+    suspend fun updateSelectedModel(model: String) {
+        settingsDataStore.updateSelectedModel(model)
     }
 
-    var apiKey by mutableStateOf("")
-        private set
-    fun updateApiKey(key: String) {
-        apiKey = key
+    suspend fun updateApiEndpoint(endpoint: String) {
+        settingsDataStore.updateApiEndpoint(endpoint)
     }
 
-    var serverUrl by mutableStateOf("https://api.example.com")
-        private set
-    fun updateServerUrl(url: String) {
-        serverUrl = url.trim()
+    suspend fun updateSystemPrompt(prompt: String) {
+        settingsDataStore.updateSystemPrompt(prompt)
     }
 
+    suspend fun updateNotificationsEnabled(enabled: Boolean) {
+        settingsDataStore.updateNotificationsEnabled(enabled)
+    }
+
+    suspend fun updateHistoryRetentionDays(days: Int) {
+        settingsDataStore.updateHistoryRetentionDays(days)
+    }
+
+    suspend fun updateCachingEnabled(enabled: Boolean) {
+        settingsDataStore.updateCachingEnabled(enabled)
+    }
+
+    suspend fun updateAnalytics(enabled: Boolean) {
+        settingsDataStore.updateAnalyticsEnabled(enabled)
+    }
+
+    // Extra UI-only toggles
     var showAdvancedSettings by mutableStateOf(false)
         private set
     fun toggleAdvancedSettings() {
         showAdvancedSettings = !showAdvancedSettings
-    }
-
-    var cachingEnabled by mutableStateOf(true)
-        private set
-    fun toggleCaching() {
-        cachingEnabled = !cachingEnabled
     }
 
     var showApiKey by mutableStateOf(false)
@@ -66,11 +84,5 @@ class SettingViewModel : ViewModel() {
         private set
     fun toggleSoundEffects() {
         soundEffectsEnabled = !soundEffectsEnabled
-    }
-
-    var analyticsEnabled by mutableStateOf(false)
-        private set
-    fun toggleAnalytics() {
-        analyticsEnabled = !analyticsEnabled
     }
 }

@@ -1,4 +1,4 @@
-package com.example.botchat.Data
+package com.example.botchat.data
 
 // Server Request/Response
 data class ChatRequest(

@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.botchat.Data.ChatMessage
+import com.example.botchat.data.ChatMessage
 import com.example.botchat.ui.theme.*
 import kotlinx.coroutines.launch
 

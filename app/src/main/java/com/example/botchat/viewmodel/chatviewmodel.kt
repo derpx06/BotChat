@@ -2,7 +2,7 @@ package com.example.botchat.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.botchat.Data.ChatMessage
+import com.example.botchat.data.ChatMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

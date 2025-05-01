@@ -22,7 +22,8 @@ fun ChatScreen(
     settingViewModel: SettingViewModel = viewModel()
 ) {
     val uiState = chatViewModel.uiState.collectAsState().value
-    val isDarkTheme = settingViewModel.darkModeEnabled
+    val isDarkTheme = settingViewModel.darkModeEnabled.collectAsState(initial = false).value
+
 
     Box(
         modifier = Modifier

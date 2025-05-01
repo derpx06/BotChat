@@ -1,4 +1,4 @@
-package com.example.botchat.Data
+package com.example.botchat.data
 
 data class ChatMessage(
     val content: String,

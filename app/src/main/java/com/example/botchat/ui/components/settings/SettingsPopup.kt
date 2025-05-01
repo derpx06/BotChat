@@ -26,18 +26,26 @@ import com.example.botchat.ui.theme.*
 import com.example.botchat.viewmodel.SettingViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun SettingsSheetBottom(
     viewModel: SettingViewModel,
     onDismiss: () -> Unit
 ) {
-    val isDarkTheme = viewModel.darkModeEnabled
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = { true }
     )
+
+    // Collect all DataStore-backed Flows as Compose State
+    val isDarkTheme by viewModel.darkModeEnabled.collectAsState(initial = false)
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsState(initial = true)
+    val historyRetentionDays by viewModel.historyRetentionDays.collectAsState(initial = 7)
+    val apiKey by viewModel.apiKey.collectAsState(initial = "")
+    val apiEndpoint by viewModel.apiEndpoint.collectAsState(initial = "")
+    val cachingEnabled by viewModel.cachingEnabled.collectAsState(initial = true)
+    val analyticsEnabled by viewModel.analyticsEnabled.collectAsState(initial = false)
 
     ModalBottomSheet(
         onDismissRequest = {
@@ -72,6 +80,7 @@ fun SettingsSheetBottom(
                     )
                     .padding(16.dp)
             ) {
+                // Header row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -116,16 +125,19 @@ fun SettingsSheetBottom(
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(12.dp))
+
+                // Tabs
                 var selectedTab by remember { mutableStateOf(0) }
                 val tabs = listOf("General", "API", "Other")
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Transparent,
                     contentColor = if (isDarkTheme) PureWhite else SlateBlack,
-                    indicator = { tabPositions ->
+                    indicator = { positions ->
                         TabRowDefaults.Indicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                            Modifier.tabIndicatorOffset(positions[selectedTab]),
                             color = if (isDarkTheme) ElectricCyan else Purple40
                         )
                     }
@@ -141,7 +153,8 @@ fun SettingsSheetBottom(
                                         color = if (selectedTab == index) {
                                             if (isDarkTheme) ElectricCyan else Purple40
                                         } else {
-                                            if (isDarkTheme) GalacticGray else SlateBlack.copy(alpha = 0.7f)
+                                            if (isDarkTheme) GalacticGray
+                                            else SlateBlack.copy(alpha = 0.7f)
                                         }
                                     )
                                 )
@@ -149,38 +162,60 @@ fun SettingsSheetBottom(
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Tab content
                 AnimatedContent(
                     targetState = selectedTab,
-                    transitionSpec = { fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300)) },
-                    label = "SettingsTabTransition"
+                    transitionSpec = { fadeIn(tween(300)) with fadeOut(tween(300)) }
                 ) { tabIndex ->
                     when (tabIndex) {
                         0 -> GeneralSettingsTab(
-                            darkModeEnabled = viewModel.darkModeEnabled,
-                            notificationsEnabled = viewModel.notificationsEnabled,
-                            historyRetentionDays = viewModel.historyRetentionDays,
-                            onDarkModeToggle = { viewModel.toggleDarkMode() },
-                            onNotificationsToggle = { viewModel.toggleNotifications() },
-                            onRetentionChange = { viewModel.updateHistoryRetentionDays(it) }
+                            darkModeEnabled = isDarkTheme,
+                            notificationsEnabled = notificationsEnabled,
+                            historyRetentionDays = historyRetentionDays,
+                            onDarkModeToggle = {
+                                scope.launch { viewModel.updateDarkMode(!isDarkTheme) }
+                            },
+                            onNotificationsToggle = {
+                                scope.launch { viewModel.updateNotificationsEnabled(!notificationsEnabled) }
+                            },
+                            onRetentionChange = { days ->
+                                scope.launch { viewModel.updateHistoryRetentionDays(days) }
+                            }
                         )
                         1 -> ApiSettingsTab(
-                            apiKey = viewModel.apiKey,
-                            serverUrl = viewModel.serverUrl,
+                            apiKey = apiKey,
+                            serverUrl = apiEndpoint,
                             showAdvancedSettings = viewModel.showAdvancedSettings,
-                            cachingEnabled = viewModel.cachingEnabled,
+                            cachingEnabled = cachingEnabled,
                             showApiKey = viewModel.showApiKey,
-                            onApiKeyChange = { viewModel.updateApiKey(it) },
-                            onServerUrlChange = { viewModel.updateServerUrl(it) },
-                            onAdvancedSettingsToggle = { viewModel.toggleAdvancedSettings() },
-                            onCachingToggle = { viewModel.toggleCaching() },
-                            onApiKeyVisibilityToggle = { viewModel.toggleApiKeyVisibility() }
+                            onApiKeyChange = { key ->
+                                scope.launch { viewModel.updateApiKey(key) }
+                            },
+                            onServerUrlChange = { url ->
+                                scope.launch { viewModel.updateApiEndpoint(url) }
+                            },
+                            onAdvancedSettingsToggle = {
+                                viewModel.toggleAdvancedSettings()
+                            },
+                            onCachingToggle = {
+                                scope.launch { viewModel.updateCachingEnabled(!cachingEnabled) }
+                            },
+                            onApiKeyVisibilityToggle = {
+                                viewModel.toggleApiKeyVisibility()
+                            }
                         )
                         2 -> OtherSettingsTab(
                             soundEffectsEnabled = viewModel.soundEffectsEnabled,
-                            analyticsEnabled = viewModel.analyticsEnabled,
-                            onSoundEffectsToggle = { viewModel.toggleSoundEffects() },
-                            onAnalyticsToggle = { viewModel.toggleAnalytics() }
+                            analyticsEnabled = analyticsEnabled,
+                            onSoundEffectsToggle = {
+                                viewModel.toggleSoundEffects()
+                            },
+                            onAnalyticsToggle = {
+                                scope.launch { viewModel.updateAnalytics(!analyticsEnabled) }
+                            }
                         )
                     }
                 }

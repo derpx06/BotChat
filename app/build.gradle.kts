@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -52,6 +53,10 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation ("androidx.compose.animation:animation:1.5.0")
+    //DataStore
+    implementation ("com.google.dagger:hilt-android:2.44")
+    implementation ("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // Add Accompanist for ModalBottomSheetLayout
     implementation ("com.google.accompanist:accompanist-navigation-material:0.31.2-alpha")
@@ -64,7 +69,6 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:2.3.9")
     implementation("io.ktor:ktor-serialization-gson:2.3.9")
     implementation("io.ktor:ktor-client-logging:2.3.9")
-
     // Navigation Component (for Jetpack Compose)
     implementation("androidx.navigation:navigation-compose:2.7.7")
     // Navigation Component (for Jetpack Compose)
@@ -88,3 +92,4 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+

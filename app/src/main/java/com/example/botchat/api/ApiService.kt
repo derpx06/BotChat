@@ -1,7 +1,7 @@
 package com.example.botchat.api
 
-import com.example.botchat.Data.ChatRequest
-import com.example.botchat.Data.ChatResponse
+import com.example.botchat.data.ChatRequest
+import com.example.botchat.data.ChatResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
