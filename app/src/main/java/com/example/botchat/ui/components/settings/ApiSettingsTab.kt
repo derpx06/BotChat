@@ -5,8 +5,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,11 +29,13 @@ import com.example.botchat.ui.theme.*
 fun ApiSettingsTab(
     apiKey: String,
     serverUrl: String,
+    selectedModel: String,
     showAdvancedSettings: Boolean,
     cachingEnabled: Boolean,
     showApiKey: Boolean,
     onApiKeyChange: (String) -> Unit,
     onServerUrlChange: (String) -> Unit,
+    onSelectedModelChange: (String) -> Unit,
     onAdvancedSettingsToggle: () -> Unit,
     onCachingToggle: (Boolean) -> Unit,
     onApiKeyVisibilityToggle: () -> Unit,
@@ -55,6 +63,10 @@ fun ApiSettingsTab(
         ServerUrlInput(
             serverUrl = serverUrl,
             onServerUrlChange = onServerUrlChange
+        )
+        ModelSelectionInput(
+            selectedModel = selectedModel,
+            onModelChange = onSelectedModelChange
         )
         AdvancedSettingsSection(
             showAdvancedSettings = showAdvancedSettings,
@@ -140,6 +152,62 @@ private fun ServerUrlInput(
 }
 
 @Composable
+private fun ModelSelectionInput(
+    selectedModel: String,
+    onModelChange: (String) -> Unit
+) {
+    val models = listOf(
+        "facebook/blenderbot-400M-distill",
+        "microsoft/DialoGPT-medium",
+        "distilgpt2"
+    )
+    var expanded by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
+            .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
+        OutlinedTextField(
+            value = selectedModel,
+            onValueChange = { /* Read-only */ },
+            label = { Text("Hugging Face Model") },
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true,
+            trailingIcon = {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Model")
+                }
+            },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Transparent,
+                unfocusedContainerColor = Transparent,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                cursorColor = MaterialTheme.colorScheme.onSurface
+            ),
+            shape = RoundedCornerShape(8.dp)
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            models.forEach { model ->
+                DropdownMenuItem(
+                    text = { Text(model) },
+                    onClick = {
+                        onModelChange(model)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun AdvancedSettingsSection(
     showAdvancedSettings: Boolean,
     cachingEnabled: Boolean,
@@ -170,7 +238,12 @@ private fun AdvancedSettingsSection(
             )
             Checkbox(
                 checked = showAdvancedSettings,
-                onCheckedChange = { onAdvancedSettingsToggle() }
+                onCheckedChange = { onAdvancedSettingsToggle() },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                    uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    checkmarkColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
         if (showAdvancedSettings) {

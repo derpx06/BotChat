@@ -1,5 +1,7 @@
 package com.example.botchat.data
 
+import androidx.datastore.preferences.protobuf.BoolValueOrBuilder
+
 // Server Request/Response
 data class ChatRequest(
     val messages: List<Message>,
@@ -7,8 +9,9 @@ data class ChatRequest(
 )
 
 data class Message(
-    val role: String = "user",
-    val content: String
+    val content: String,
+    val isUser: Boolean,
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 data class ChatResponse(

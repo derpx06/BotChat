@@ -1,8 +1,8 @@
 package com.example.botchat.ui.components.settings
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,6 +44,7 @@ fun SettingsSheetBottom(
     val historyRetentionDays by viewModel.historyRetentionDays.collectAsState(initial = 7)
     val apiKey by viewModel.apiKey.collectAsState(initial = "")
     val apiEndpoint by viewModel.apiEndpoint.collectAsState(initial = "")
+    val selectedModel by viewModel.selectedModelFlow.collectAsState(initial = "facebook/blenderbot-400M-distill")
     val cachingEnabled by viewModel.cachingEnabled.collectAsState(initial = true)
     val analyticsEnabled by viewModel.analyticsEnabled.collectAsState(initial = false)
 
@@ -168,7 +169,8 @@ fun SettingsSheetBottom(
                 // Tab content
                 AnimatedContent(
                     targetState = selectedTab,
-                    transitionSpec = { fadeIn(tween(300)) with fadeOut(tween(300)) }
+                    transitionSpec = { fadeIn(tween(300)) with fadeOut(tween(300)) },
+                    label = "SettingsTabContent"
                 ) { tabIndex ->
                     when (tabIndex) {
                         0 -> GeneralSettingsTab(
@@ -188,6 +190,7 @@ fun SettingsSheetBottom(
                         1 -> ApiSettingsTab(
                             apiKey = apiKey,
                             serverUrl = apiEndpoint,
+                            selectedModel = selectedModel,
                             showAdvancedSettings = viewModel.showAdvancedSettings,
                             cachingEnabled = cachingEnabled,
                             showApiKey = viewModel.showApiKey,
@@ -196,6 +199,9 @@ fun SettingsSheetBottom(
                             },
                             onServerUrlChange = { url ->
                                 scope.launch { viewModel.updateApiEndpoint(url) }
+                            },
+                            onSelectedModelChange = { model ->
+                                scope.launch { viewModel.updateSelectedModel(model) }
                             },
                             onAdvancedSettingsToggle = {
                                 viewModel.toggleAdvancedSettings()

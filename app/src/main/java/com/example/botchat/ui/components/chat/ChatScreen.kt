@@ -9,17 +9,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.botchat.data.UserSettingsDataStore
 import com.example.botchat.ui.components.settings.SettingsSheetBottom
 import com.example.botchat.ui.theme.*
 import com.example.botchat.viewmodel.ChatViewModel
+import com.example.botchat.viewmodel.ChatViewModelFactory
 import com.example.botchat.viewmodel.SettingViewModel
+import com.example.botchat.viewmodel.SettingViewModelFactory
 
 @Composable
 fun ChatScreen(
-    chatViewModel: ChatViewModel = viewModel(),
-    settingViewModel: SettingViewModel = viewModel()
+    chatViewModel: ChatViewModel = viewModel(factory = ChatViewModelFactory(UserSettingsDataStore(LocalContext.current))),
+    settingViewModel: SettingViewModel = viewModel(factory = SettingViewModelFactory(UserSettingsDataStore(LocalContext.current)))
 ) {
     val uiState = chatViewModel.uiState.collectAsState().value
     val isDarkTheme = settingViewModel.darkModeEnabled.collectAsState(initial = false).value

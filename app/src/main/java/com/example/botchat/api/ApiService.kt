@@ -1,28 +1,32 @@
 package com.example.botchat.api
 
-import com.example.botchat.data.ChatRequest
-import com.example.botchat.data.ChatResponse
+import com.example.botchat.data.HuggingFaceRequest
+import com.example.botchat.data.HuggingFaceResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Url
 import java.util.concurrent.TimeUnit
 
-interface ChatApiService {
-    @POST("api/chat")
-    suspend fun sendMessage(
-        @Body request: ChatRequest
-    ): Response<ChatResponse> // Use Response wrapper for error handling
+interface HuggingFaceApiService {
+    @POST
+    suspend fun query(
+        @Header("Authorization") authorization: String,
+        @Body payload: HuggingFaceRequest,
+        @Url url: String
+    ): Response<HuggingFaceResponse>
 
     companion object {
-        private const val BASE_URL = "https://lung-heights-gbp-why.trycloudflare.com/"
+        private const val BASE_URL = "https://api-inference.huggingface.co/"
 
-        fun create(): ChatApiService {
+        fun create(): HuggingFaceApiService {
             val loggingInterceptor = HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY // Changed to BODY for more detailed logs
+                level = HttpLoggingInterceptor.Level.BODY // Log request/response
             }
 
             val httpClient = OkHttpClient.Builder()
@@ -37,7 +41,7 @@ interface ChatApiService {
                 .client(httpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
-                .create(ChatApiService::class.java)
+                .create(HuggingFaceApiService::class.java)
         }
     }
 }

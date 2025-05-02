@@ -2,14 +2,18 @@ package com.example.botchat.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.botchat.api.HuggingFaceApiService
 import com.example.botchat.data.ChatMessage
+import com.example.botchat.data.HuggingFaceParameters
+import com.example.botchat.data.HuggingFaceRequest
+import com.example.botchat.data.HuggingFaceResponse
+import com.example.botchat.data.UserSettingsDataStore
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
@@ -18,7 +22,10 @@ data class ChatUiState(
     val errorMessage: String? = null
 )
 
-class ChatViewModel : ViewModel() {
+class ChatViewModel(
+    private val settingsDataStore: UserSettingsDataStore
+) : ViewModel() {
+    private val apiService: HuggingFaceApiService = HuggingFaceApiService.create()
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
@@ -52,17 +59,67 @@ class ChatViewModel : ViewModel() {
     }
 
     private fun respondToUserMessage(userMessage: String) {
-        viewModelScope.launch(Dispatchers.Default) {
-            // Random delay between 1000ms and 3000ms to simulate AI processing
-            val delayMs = Random.nextLong(1000, 3001)
-            delay(delayMs)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Fetch API key and model from settings
+                val apiKey = settingsDataStore.getHUGGINGFACE_API.first()
+                val model = settingsDataStore.getSelectedModel.first()
+                val modelUrl = "https://api-inference.huggingface.co/models/$model"
 
-            val responseText = generateCustomResponse(userMessage.lowercase())
-            val response = ChatMessage(content = responseText, isUser = false)
-            _uiState.value = _uiState.value.copy(
-                messages = _uiState.value.messages + response,
-                isLoading = false
-            )
+                if (apiKey.isBlank()) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "API key is missing. Please set it in Settings."
+                    )
+                    return@launch
+                }
+
+                // Prepare request
+                val request = HuggingFaceRequest(
+                    inputs = userMessage,
+                    parameters = HuggingFaceParameters(
+                        max_new_tokens = 100,
+                        temperature = 0.7,
+                        top_p = 0.9,
+                        do_sample = true
+                    )
+                )
+
+                // Call Hugging Face API
+                val response = apiService.query(
+                    authorization = "Bearer $apiKey",
+                    payload = request,
+                    url = modelUrl
+                )
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    val responseText = when {
+                        responseBody?.generated_text != null -> responseBody.generated_text
+                        responseBody?.error != null -> "API error: ${responseBody.error}"
+                        else -> "No response received"
+                    }
+                    val botMessage = ChatMessage(content = responseText.trim(), isUser = false)
+                    _uiState.value = _uiState.value.copy(
+                        messages = _uiState.value.messages + botMessage,
+                        isLoading = false
+                    )
+                } else {
+                    val fallbackResponse = generateCustomResponse(userMessage)
+                    _uiState.value = _uiState.value.copy(
+                        messages = _uiState.value.messages + ChatMessage(content = fallbackResponse, isUser = false),
+                        isLoading = false,
+                        errorMessage = "API error: ${response.message()}. Using fallback response."
+                    )
+                }
+            } catch (e: Exception) {
+                val fallbackResponse = generateCustomResponse(userMessage)
+                _uiState.value = _uiState.value.copy(
+                    messages = _uiState.value.messages + ChatMessage(content = fallbackResponse, isUser = false),
+                    isLoading = false,
+                    errorMessage = "Network error: ${e.message}. Using fallback response."
+                )
+            }
         }
     }
 
