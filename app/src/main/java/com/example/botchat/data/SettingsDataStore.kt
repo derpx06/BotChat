@@ -25,6 +25,8 @@ data class UserSettingsDataStore(private val context: Context) {
         private val HISTORY_RETENTION_DAYS = intPreferencesKey("history_retention_days")
         private val CACHING_ENABLED = booleanPreferencesKey("caching_enabled")
         private val ANALYTICS_ENABLED = booleanPreferencesKey("analytics_enabled")
+        private val OPENROUTER_API_KEY = stringPreferencesKey("openrouter_api_key")
+        private val OPENROUTER_MODEL = stringPreferencesKey("openrouter_model")
     }
 
     val getDarkMode: Flow<Boolean> = context.dataStore.data
@@ -35,6 +37,14 @@ data class UserSettingsDataStore(private val context: Context) {
     val getHUGGINGFACE_API: Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[HUGGINGFACE_API_KEY] ?: ""
+        }
+    val getOpenRouterAPi: Flow<String> = context.dataStore.data
+       .map { preferences ->
+           preferences[OPENROUTER_API_KEY]?:""
+    }
+    val getOpenRouterModel: Flow<String> = context.dataStore.data
+        .map {preferences ->
+            preferences[OPENROUTER_MODEL]?:"google/gemma-3-12b-it:free"
         }
 
     val getSelectedModel: Flow<String> = context.dataStore.data
@@ -75,6 +85,16 @@ data class UserSettingsDataStore(private val context: Context) {
     suspend fun updateDarkMode(enableDarkMode: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[DARK_MODE] = enableDarkMode
+        }
+    }
+    suspend fun updateOpenRouterApiKey(apiKey: String) {
+        context.dataStore.edit { preferences ->
+            preferences[OPENROUTER_API_KEY] = apiKey
+        }
+    }
+    suspend fun updateOpenRouterModel(model: String) {
+        context.dataStore.edit { preferences ->
+            preferences[OPENROUTER_MODEL] = model
         }
     }
 
