@@ -15,5 +15,5 @@ interface HuggingFaceApiServic{
         @Header("Authorization") authorization: String,
         @Body payload: HuggingFaceRequest,
         @Url url: String // Add url as parameter
-    ): Response<HuggingFaceResponse>
+    ): Response<List<HuggingFaceResponse>>
 }
