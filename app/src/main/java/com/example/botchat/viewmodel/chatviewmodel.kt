@@ -40,7 +40,10 @@ class ChatViewModel(
         "microsoft/Phi-3-mini-4k-instruct",
         "google/gemma-2b-it",
         "Qwen/Qwen1.5-1.8B-Chat",
-        "NousResearch/Hermes-2-Theta-Llama-3.1-4B"
+        "NousResearch/Hermes-2-Theta-Llama-3.1-4B",
+        "Qwen/Qwen3-0.6B",
+        "facebook/blenderbot-400M-distill"
+
     )
 
     fun updateInputText(text: String) {
@@ -106,7 +109,7 @@ class ChatViewModel(
                 val request = HuggingFaceRequest(
                     inputs = userMessage,
                     parameters = HuggingFaceParameters(
-                        max_new_tokens = 500,
+                        //max_new_tokens = 200,
                         temperature = 0.7,
                         top_p = 0.9,
                         do_sample = true

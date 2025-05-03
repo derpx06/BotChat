@@ -156,8 +156,9 @@ private fun ModelSelectionInput(
         "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",  // New model
         "microsoft/phi-3-mini-4k-instruct",
         "google/gemma-2b-it",
-        "Qwen/Qwen1.5-1.8B-Chat",
-        "NousResearch/Hermes-2-Pro-Mistral-7B"
+        "Qwen/Qwen3-0.6B",
+        "NousResearch/Hermes-2-Pro-Mistral-7B",
+        "facebook/blenderbot-400M-distill"
     )
     var expanded by remember { mutableStateOf(false) }
     Box(
