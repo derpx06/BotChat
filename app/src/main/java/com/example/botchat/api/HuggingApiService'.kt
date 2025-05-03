@@ -17,3 +17,4 @@ interface HuggingFaceApiServic{
         @Url url: String // Add url as parameter
     ): Response<List<HuggingFaceResponse>>
 }
+//huggingfaceapi
