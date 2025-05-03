@@ -8,11 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -157,9 +153,11 @@ private fun ModelSelectionInput(
     onModelChange: (String) -> Unit
 ) {
     val models = listOf(
-        "facebook/blenderbot-400M-distill",
-        "microsoft/DialoGPT-medium",
-        "distilgpt2"
+        "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",  // New model
+        "microsoft/phi-3-mini-4k-instruct",
+        "google/gemma-2b-it",
+        "Qwen/Qwen1.5-1.8B-Chat",
+        "NousResearch/Hermes-2-Pro-Mistral-7B"
     )
     var expanded by remember { mutableStateOf(false) }
     Box(

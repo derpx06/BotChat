@@ -11,14 +11,11 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-// Extension property to create the DataStore instance (remains the same)
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-// Wrapper class for SettingsDataStore
 data class UserSettingsDataStore(private val context: Context) {
 
     companion object {
-        // Use a boolean key for dark mode
         private val DARK_MODE = booleanPreferencesKey("dark_mode")
         private val HUGGINGFACE_API_KEY = stringPreferencesKey("api_key")
         private val SELECTED_MODEL = stringPreferencesKey("selected_model")
@@ -30,7 +27,6 @@ data class UserSettingsDataStore(private val context: Context) {
         private val ANALYTICS_ENABLED = booleanPreferencesKey("analytics_enabled")
     }
 
-    // Flows with non-null, correctly typed defaults
     val getDarkMode: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[DARK_MODE] ?: false
@@ -43,12 +39,12 @@ data class UserSettingsDataStore(private val context: Context) {
 
     val getSelectedModel: Flow<String> = context.dataStore.data
         .map { preferences ->
-            preferences[SELECTED_MODEL] ?: "gpt-3.5-turbo"
+            preferences[SELECTED_MODEL] ?: "facebook/blenderbot-400M-distill"
         }
 
     val getApiEndpoint: Flow<String> = context.dataStore.data
         .map { preferences ->
-            preferences[API_ENDPOINT] ?: "https://api.openai.com/v1/chat/completions"
+            preferences[API_ENDPOINT] ?: "https://api-inference.huggingface.co"
         }
 
     val getSystemPrompt: Flow<String> = context.dataStore.data
@@ -76,7 +72,6 @@ data class UserSettingsDataStore(private val context: Context) {
             preferences[ANALYTICS_ENABLED] ?: false
         }
 
-    // Update functions
     suspend fun updateDarkMode(enableDarkMode: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[DARK_MODE] = enableDarkMode

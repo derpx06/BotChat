@@ -4,7 +4,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -28,7 +27,6 @@ fun ChatScreen(
     val uiState = chatViewModel.uiState.collectAsState().value
     val isDarkTheme = settingViewModel.darkModeEnabled.collectAsState(initial = false).value
 
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -37,31 +35,38 @@ fun ChatScreen(
             .safeDrawingPadding()
             .statusBarsPadding()
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            TopBar(
-                onSettingsClick = { settingViewModel.toggleSettings() },
-                isDarkTheme = isDarkTheme
+        if (uiState.showErrorPage) {
+            ErrorPage(
+                isDarkTheme = isDarkTheme,
+                onDismiss = chatViewModel::clearError
             )
-            ChatMessages(
-                messages = uiState.messages,
-                isLoading = uiState.isLoading,
-                modifier = Modifier.weight(1f),
-                isDarkTheme = isDarkTheme
-            )
-            ChatInputSection(
-                inputText = uiState.inputText,
-                onInputChange = chatViewModel::updateInputText,
-                onSendClick = chatViewModel::sendMessage,
-                onStopClick = chatViewModel::cancelProcessing,
-                isLoading = uiState.isLoading,
-                isDarkTheme = isDarkTheme
-            )
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                TopBar(
+                    onSettingsClick = { settingViewModel.toggleSettings() },
+                    isDarkTheme = isDarkTheme
+                )
+                ChatMessages(
+                    messages = uiState.messages,
+                    isLoading = uiState.isLoading,
+                    modifier = Modifier.weight(1f),
+                    isDarkTheme = isDarkTheme
+                )
+                ChatInputSection(
+                    inputText = uiState.inputText,
+                    onInputChange = chatViewModel::updateInputText,
+                    onSendClick = chatViewModel::sendMessage,
+                    onStopClick = chatViewModel::cancelProcessing,
+                    isLoading = uiState.isLoading,
+                    isDarkTheme = isDarkTheme
+                )
+            }
         }
 
         AnimatedVisibility(
-            visible = uiState.errorMessage != null,
+            visible = uiState.errorMessage != null && !uiState.showErrorPage,
             enter = fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f),
             exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f)
         ) {
