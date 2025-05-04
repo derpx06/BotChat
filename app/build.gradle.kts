@@ -77,6 +77,10 @@ dependencies {
     // Navigation Component (for Jetpack Compose)
     implementation("androidx.navigation:navigation-compose:2.7.7")
     // Navigation component (for Fragments)
+    val roomVersion = "2.7.1" // Use the latest version
+    implementation("androidx.room:room-runtime:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")//Kotlin extensions and coroutines support
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
     implementation(libs.androidx.core.ktx)
