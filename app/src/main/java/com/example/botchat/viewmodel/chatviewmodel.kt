@@ -15,7 +15,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.botchat.Repository.ChatRepository
+import com.example.botchat.database.ChatDatabase
 import java.io.IOException
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 data class UiState(
     val messages: List<ChatMessage> = emptyList(),
@@ -28,7 +31,8 @@ data class UiState(
 class ChatViewModel(
     private val settingsDataStore: UserSettingsDataStore,
     private val openRouterApiService: OpenRouterApiService = OpenRouterApiService.create(),
-    private val huggingFaceApiService: HuggingFaceApiService = HuggingFaceApiService.create()
+    private val huggingFaceApiService: HuggingFaceApiService = HuggingFaceApiService.create(),
+   // private val chatRepository: ChatRepository = ChatRepository(ChatDatabase.getDatabase().chatMessageDao())
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
