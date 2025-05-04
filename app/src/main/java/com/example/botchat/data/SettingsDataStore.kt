@@ -27,122 +27,98 @@ data class UserSettingsDataStore(private val context: Context) {
         private val ANALYTICS_ENABLED = booleanPreferencesKey("analytics_enabled")
         private val OPENROUTER_API_KEY = stringPreferencesKey("openrouter_api_key")
         private val OPENROUTER_MODEL = stringPreferencesKey("openrouter_model")
+        private val SOUND_EFFECTS_ENABLED = booleanPreferencesKey("sound_effects_enabled")
+        private val SELECTED_PROVIDER = stringPreferencesKey("selected_provider")
     }
 
     val getDarkMode: Flow<Boolean> = context.dataStore.data
-        .map { preferences ->
-            preferences[DARK_MODE] ?: false
-        }
+        .map { preferences -> preferences[DARK_MODE] ?: false }
 
     val getHUGGINGFACE_API: Flow<String> = context.dataStore.data
-        .map { preferences ->
-            preferences[HUGGINGFACE_API_KEY] ?: ""
-        }
+        .map { preferences -> preferences[HUGGINGFACE_API_KEY] ?: "" }
+
     val getOpenRouterAPi: Flow<String> = context.dataStore.data
-       .map { preferences ->
-           preferences[OPENROUTER_API_KEY]?:""
-    }
+        .map { preferences -> preferences[OPENROUTER_API_KEY] ?: "" }
+
     val getOpenRouterModel: Flow<String> = context.dataStore.data
-        .map {preferences ->
-            preferences[OPENROUTER_MODEL]?:"google/gemma-3-12b-it:free"
-        }
+        .map { preferences -> preferences[OPENROUTER_MODEL] ?: "google/gemma-3-12b-it:free" }
 
     val getSelectedModel: Flow<String> = context.dataStore.data
-        .map { preferences ->
-            preferences[SELECTED_MODEL] ?: "facebook/blenderbot-400M-distill"
-        }
+        .map { preferences -> preferences[SELECTED_MODEL] ?: "facebook/blenderbot-400M-distill" }
 
     val getApiEndpoint: Flow<String> = context.dataStore.data
-        .map { preferences ->
-            preferences[API_ENDPOINT] ?: "https://api-inference.huggingface.co"
-        }
+        .map { preferences -> preferences[API_ENDPOINT] ?: "https://api-inference.huggingface.co" }
 
     val getSystemPrompt: Flow<String> = context.dataStore.data
-        .map { preferences ->
-            preferences[SYSTEM_PROMPT] ?: "You are a helpful assistant."
-        }
+        .map { preferences -> preferences[SYSTEM_PROMPT] ?: "You are a helpful assistant." }
 
     val getNotificationsEnabled: Flow<Boolean> = context.dataStore.data
-        .map { preferences ->
-            preferences[NOTIFICATIONS_ENABLED] ?: true
-        }
+        .map { preferences -> preferences[NOTIFICATIONS_ENABLED] ?: true }
 
     val getHistoryRetentionDays: Flow<Int> = context.dataStore.data
-        .map { preferences ->
-            preferences[HISTORY_RETENTION_DAYS] ?: 7
-        }
+        .map { preferences -> preferences[HISTORY_RETENTION_DAYS] ?: 7 }
 
     val getCachingEnabled: Flow<Boolean> = context.dataStore.data
-        .map { preferences ->
-            preferences[CACHING_ENABLED] ?: true
-        }
+        .map { preferences -> preferences[CACHING_ENABLED] ?: true }
 
     val getAnalyticsEnabled: Flow<Boolean> = context.dataStore.data
-        .map { preferences ->
-            preferences[ANALYTICS_ENABLED] ?: false
-        }
+        .map { preferences -> preferences[ANALYTICS_ENABLED] ?: false }
+
+    val getSoundEffectsEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[SOUND_EFFECTS_ENABLED] ?: false }
+
+    val getSelectedProvider: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[SELECTED_PROVIDER] ?: "openrouter" }
 
     suspend fun updateDarkMode(enableDarkMode: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[DARK_MODE] = enableDarkMode
-        }
+        context.dataStore.edit { preferences -> preferences[DARK_MODE] = enableDarkMode }
     }
+
     suspend fun updateOpenRouterApiKey(apiKey: String) {
-        context.dataStore.edit { preferences ->
-            preferences[OPENROUTER_API_KEY] = apiKey
-        }
+        context.dataStore.edit { preferences -> preferences[OPENROUTER_API_KEY] = apiKey }
     }
+
     suspend fun updateOpenRouterModel(model: String) {
-        context.dataStore.edit { preferences ->
-            preferences[OPENROUTER_MODEL] = model
-        }
+        context.dataStore.edit { preferences -> preferences[OPENROUTER_MODEL] = model }
     }
 
     suspend fun updateHUGGINGFACE_API_KEY(apiKey: String) {
-        context.dataStore.edit { preferences ->
-            preferences[HUGGINGFACE_API_KEY] = apiKey
-        }
+        context.dataStore.edit { preferences -> preferences[HUGGINGFACE_API_KEY] = apiKey }
     }
 
     suspend fun updateSelectedModel(model: String) {
-        context.dataStore.edit { preferences ->
-            preferences[SELECTED_MODEL] = model
-        }
+        context.dataStore.edit { preferences -> preferences[SELECTED_MODEL] = model }
     }
 
     suspend fun updateApiEndpoint(endpoint: String) {
-        context.dataStore.edit { preferences ->
-            preferences[API_ENDPOINT] = endpoint
-        }
+        context.dataStore.edit { preferences -> preferences[API_ENDPOINT] = endpoint }
     }
 
     suspend fun updateSystemPrompt(prompt: String) {
-        context.dataStore.edit { preferences ->
-            preferences[SYSTEM_PROMPT] = prompt
-        }
+        context.dataStore.edit { preferences -> preferences[SYSTEM_PROMPT] = prompt }
     }
 
     suspend fun updateNotificationsEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[NOTIFICATIONS_ENABLED] = enabled
-        }
+        context.dataStore.edit { preferences -> preferences[NOTIFICATIONS_ENABLED] = enabled }
     }
 
     suspend fun updateHistoryRetentionDays(days: Int) {
-        context.dataStore.edit { preferences ->
-            preferences[HISTORY_RETENTION_DAYS] = days
-        }
+        context.dataStore.edit { preferences -> preferences[HISTORY_RETENTION_DAYS] = days }
     }
 
     suspend fun updateCachingEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[CACHING_ENABLED] = enabled
-        }
+        context.dataStore.edit { preferences -> preferences[CACHING_ENABLED] = enabled }
     }
 
     suspend fun updateAnalyticsEnabled(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[ANALYTICS_ENABLED] = enabled
-        }
+        context.dataStore.edit { preferences -> preferences[ANALYTICS_ENABLED] = enabled }
+    }
+
+    suspend fun updateSoundEffectsEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences -> preferences[SOUND_EFFECTS_ENABLED] = enabled }
+    }
+
+    suspend fun updateSelectedProvider(provider: String) {
+        context.dataStore.edit { preferences -> preferences[SELECTED_PROVIDER] = provider }
     }
 }

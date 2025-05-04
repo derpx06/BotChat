@@ -1,11 +1,13 @@
 package com.example.botchat.data
 
 import androidx.annotation.Keep
+import com.google.gson.annotations.SerializedName
 
 @Keep
 data class HuggingFaceRequest(
-    val inputs: String,
-    val parameters: HuggingFaceParameters? = null
+    @SerializedName("inputs") val inputs: String,
+    @SerializedName("parameters") val parameters: Map<String, Any>? = null,
+    @SerializedName("stream") val stream: Boolean = false
 )
 
 @Keep

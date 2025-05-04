@@ -18,60 +18,61 @@ import androidx.compose.ui.unit.sp
 import com.example.botchat.ui.theme.*
 
 @Composable
-fun GeneralSettingsTab(
-    darkModeEnabled: Boolean,
-    notificationsEnabled: Boolean,
-    historyRetentionDays: Int,
-    systemPrompt: String,
-    onDarkModeToggle: (Boolean) -> Unit,
-    onNotificationsToggle: () -> Unit,
-    onRetentionChange: (Int) -> Unit,
-    onSystemPromptChange: (String) -> Unit,
+fun HuggingFaceSettingsSubTab(
+    apiKey: String,
+    serverUrl: String,
+    selectedModel: String,
+    showApiKey: Boolean,
+    onApiKeyChange: (String) -> Unit,
+    onServerUrlChange: (String) -> Unit,
+    onSelectedModelChange: (String) -> Unit,
+    onApiKeyVisibilityToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(8.dp)
             .animateContentSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "General Settings",
+            text = "HuggingFace Configuration",
             style = MaterialTheme.typography.labelLarge.copy(
                 color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
-                fontSize = 20.sp
+                fontSize = 18.sp
             )
         )
-
-        SettingsSwitchItem(
-            label = "Dark Mode",
-            checked = darkModeEnabled,
-            onCheckedChange = onDarkModeToggle
+        ApiKeyInput(
+            apiKey = apiKey,
+            showApiKey = showApiKey,
+            onApiKeyChange = onApiKeyChange,
+            onVisibilityToggle = onApiKeyVisibilityToggle,
+            label = "HuggingFace API Key"
         )
-
-        SettingsSwitchItem(
-            label = "Notifications",
-            checked = notificationsEnabled,
-            onCheckedChange = { onNotificationsToggle() }
+        ServerUrlInput(
+            serverUrl = serverUrl,
+            onServerUrlChange = onServerUrlChange
         )
-
-        SettingsRetentionItem(
-            days = historyRetentionDays,
-            onDaysChange = onRetentionChange
-        )
-
-        SystemPromptInput(
-            systemPrompt = systemPrompt,
-            onSystemPromptChange = onSystemPromptChange
+        ModelSelectionInput(
+            selectedModel = selectedModel,
+            onModelChange = onSelectedModelChange,
+            models = listOf(
+                "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+                "microsoft/phi-3-mini-4k-instruct",
+                "google/gemma-2b-it",
+                "Qwen/Qwen3-0.6B",
+                "NousResearch/Hermes-2-Pro-Mistral-7B",
+                "facebook/blenderbot-400M-distill"
+            )
         )
     }
 }
 
 @Composable
-fun SystemPromptInput(
-    systemPrompt: String,
-    onSystemPromptChange: (String) -> Unit,
+fun ServerUrlInput(
+    serverUrl: String,
+    onServerUrlChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -83,11 +84,11 @@ fun SystemPromptInput(
             .padding(12.dp)
     ) {
         OutlinedTextField(
-            value = systemPrompt,
-            onValueChange = onSystemPromptChange,
-            label = { Text("System Prompt") },
+            value = serverUrl,
+            onValueChange = onServerUrlChange,
+            label = { Text("Server URL") },
             modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
@@ -107,8 +108,8 @@ fun SystemPromptInput(
                 errorSupportingTextColor = MaterialTheme.colorScheme.error
             ),
             shape = RoundedCornerShape(8.dp),
-            supportingText = if (systemPrompt.isBlank()) {
-                { Text("System prompt is required", color = MaterialTheme.colorScheme.error) }
+            supportingText = if (serverUrl.isBlank()) {
+                { Text("Server URL is required", color = MaterialTheme.colorScheme.error) }
             } else null
         )
     }

@@ -2,17 +2,14 @@ package com.example.botchat.data
 
 import com.google.gson.annotations.SerializedName
 
-// Request
-data class OpenRouterRequest(
-    val model: String,
-    val messages: List<OpenRouterMessage>,
-    val temperature: Double? = 0.7,
-    @SerializedName("max_tokens") val maxTokens: Int? = 500,
-    @SerializedName("top_p") val topP: Double? = 1.0,
-    @SerializedName("frequency_penalty") val frequencyPenalty: Double? = 0.0,
-    @SerializedName("presence_penalty") val presencePenalty: Double? = 0.0
-)
 
+data class OpenRouterRequest(
+    @SerializedName("model") val model: String,
+    @SerializedName("messages") val messages: List<OpenRouterMessage>,
+    @SerializedName("stream") val stream: Boolean,
+    @SerializedName("max_tokens") val maxTokens: Int?,
+    @SerializedName("temperature") val temperature: Double
+)
 data class OpenRouterMessage(
     val role: String, // "user", "assistant", or "system"
     val content: String

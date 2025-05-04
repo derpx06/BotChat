@@ -4,85 +4,107 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.botchat.data.UserSettingsDataStore
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
 class SettingViewModel(
     private val settingsDataStore: UserSettingsDataStore
 ) : ViewModel() {
-
-    // UI toggle for showing/hiding the settings sheet
+    val darkModeEnabled = settingsDataStore.getDarkMode
+    val notificationsEnabled = settingsDataStore.getNotificationsEnabled
+    val cachingEnabled = settingsDataStore.getCachingEnabled
+    val analyticsEnabled = settingsDataStore.getAnalyticsEnabled
+    val openRouterApiKey = settingsDataStore.getOpenRouterAPi
+    val openRouterModel = settingsDataStore.getOpenRouterModel
+    val huggingFaceApiKey = settingsDataStore.getHUGGINGFACE_API
+    val selectedModel = settingsDataStore.getSelectedModel
+    val apiEndpoint = settingsDataStore.getApiEndpoint
+    val historyRetentionDays = settingsDataStore.getHistoryRetentionDays
+    val soundEffectsEnabled = settingsDataStore.getSoundEffectsEnabled
+    val selectedProvider = settingsDataStore.getSelectedProvider
+    val systemPrompt = settingsDataStore.getSystemPrompt
     var showSettings by mutableStateOf(false)
-        private set
+
+    fun updateDarkMode(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateDarkMode(enabled)
+        }
+    }
+
+    fun updateNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateNotificationsEnabled(enabled)
+        }
+    }
+
+    fun updateCachingEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateCachingEnabled(enabled)
+        }
+    }
+
+    fun updateAnalyticsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateAnalyticsEnabled(enabled)
+        }
+    }
+
+    fun updateOpenRouterApiKey(apiKey: String) {
+        viewModelScope.launch {
+            settingsDataStore.updateOpenRouterApiKey(apiKey)
+        }
+    }
+
+    fun updateOpenRouterModel(model: String) {
+        viewModelScope.launch {
+            settingsDataStore.updateOpenRouterModel(model)
+        }
+    }
+
+    fun updateHuggingFaceApiKey(apiKey: String) {
+        viewModelScope.launch {
+            settingsDataStore.updateHUGGINGFACE_API_KEY(apiKey)
+        }
+    }
+
+    fun updateSelectedModel(model: String) {
+        viewModelScope.launch {
+            settingsDataStore.updateSelectedModel(model)
+        }
+    }
+
+    fun updateApiEndpoint(endpoint: String) {
+        viewModelScope.launch {
+            settingsDataStore.updateApiEndpoint(endpoint)
+        }
+    }
+
+    fun updateHistoryRetentionDays(days: Int) {
+        viewModelScope.launch {
+            settingsDataStore.updateHistoryRetentionDays(days)
+        }
+    }
+
+    fun updateSoundEffectsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.updateSoundEffectsEnabled(enabled)
+        }
+    }
+
+    fun updateSelectedProvider(provider: String) {
+        viewModelScope.launch {
+            settingsDataStore.updateSelectedProvider(provider)
+        }
+    }
+
+    fun updateSystemPrompt(prompt: String) {
+        viewModelScope.launch {
+            settingsDataStore.updateSystemPrompt(prompt)
+        }
+    }
 
     fun toggleSettings() {
-        showSettings = !showSettings
-    }
-
-    // Expose each DataStore flow directly
-    val darkModeEnabled: Flow<Boolean>      = settingsDataStore.getDarkMode
-    val apiKey: Flow<String>                = settingsDataStore.getHUGGINGFACE_API
-    val selectedModelFlow: Flow<String>     = settingsDataStore.getSelectedModel
-    val apiEndpoint: Flow<String>           = settingsDataStore.getApiEndpoint
-    val systemPrompt: Flow<String>          = settingsDataStore.getSystemPrompt
-    val notificationsEnabled: Flow<Boolean> = settingsDataStore.getNotificationsEnabled
-    val historyRetentionDays: Flow<Int>     = settingsDataStore.getHistoryRetentionDays
-    val cachingEnabled: Flow<Boolean>       = settingsDataStore.getCachingEnabled
-    val analyticsEnabled: Flow<Boolean>     = settingsDataStore.getAnalyticsEnabled
-
-    // Suspend functions to update each setting
-    suspend fun updateDarkMode(enable: Boolean) {
-        settingsDataStore.updateDarkMode(enable)
-    }
-
-    suspend fun updateApiKey(key: String) {
-        settingsDataStore.updateHUGGINGFACE_API_KEY(key)
-    }
-
-    suspend fun updateSelectedModel(model: String) {
-        settingsDataStore.updateSelectedModel(model)
-    }
-
-    suspend fun updateApiEndpoint(endpoint: String) {
-        settingsDataStore.updateApiEndpoint(endpoint)
-    }
-
-    suspend fun updateSystemPrompt(prompt: String) {
-        settingsDataStore.updateSystemPrompt(prompt)
-    }
-
-    suspend fun updateNotificationsEnabled(enabled: Boolean) {
-        settingsDataStore.updateNotificationsEnabled(enabled)
-    }
-
-    suspend fun updateHistoryRetentionDays(days: Int) {
-        settingsDataStore.updateHistoryRetentionDays(days)
-    }
-
-    suspend fun updateCachingEnabled(enabled: Boolean) {
-        settingsDataStore.updateCachingEnabled(enabled)
-    }
-
-    suspend fun updateAnalytics(enabled: Boolean) {
-        settingsDataStore.updateAnalyticsEnabled(enabled)
-    }
-
-    // Extra UI-only toggles
-    var showAdvancedSettings by mutableStateOf(false)
-        private set
-    fun toggleAdvancedSettings() {
-        showAdvancedSettings = !showAdvancedSettings
-    }
-
-    var showApiKey by mutableStateOf(false)
-        private set
-    fun toggleApiKeyVisibility() {
-        showApiKey = !showApiKey
-    }
-
-    var soundEffectsEnabled by mutableStateOf(true)
-        private set
-    fun toggleSoundEffects() {
-        soundEffectsEnabled = !soundEffectsEnabled
+       showSettings=!showSettings
     }
 }

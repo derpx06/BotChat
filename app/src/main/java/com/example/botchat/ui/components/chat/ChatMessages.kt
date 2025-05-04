@@ -44,12 +44,16 @@ fun ChatMessages(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-            .shadow(3.dp, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp), ambientColor = if (isDarkTheme) ElectricCyan.copy(alpha = 0.3f) else Purple40.copy(alpha = 0.3f))
+            .shadow(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                ambientColor = if (isDarkTheme) ElectricCyan.copy(alpha = 0.3f) else Purple40.copy(alpha = 0.3f)
+            )
             .background(if (isDarkTheme) ChatInterfaceGradientDark else ChatInterfaceGradientLight)
             .border(
                 width = 1.dp,
                 brush = if (isDarkTheme) Brush.linearGradient(
-                    listOf(ElectricCyan.copy(alpha = 0.2f), Transparent)
+                    listOf(ElectricCyan.copy(alpha = 0.3f), Transparent)
                 ) else Brush.linearGradient(
                     listOf(Purple40.copy(alpha = 0.2f), Transparent)
                 ),
@@ -107,15 +111,8 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean) {
 
     AnimatedVisibility(
         visible = true,
-        enter = slideInVertically(initialOffsetY = { it / 2 }) + fadeIn(animationSpec = tween(400)) +
-                scaleIn(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    ),
-                    initialScale = 0.8f
-                ),
-        exit = slideOutVertically(targetOffsetY = { it / 2 }) + fadeOut(animationSpec = tween(400))
+        enter = fadeIn(animationSpec = tween(400)),
+        exit = fadeOut(animationSpec = tween(400))
     ) {
         Box(
             modifier = Modifier
@@ -159,11 +156,9 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean) {
                         fontSize = 15.sp,
                         color = if (isDarkTheme) PureWhite else SlateBlack
                     ),
-                        modifier = Modifier
-                            .then(if (!isUserMessage) Modifier.fillMaxWidth() else Modifier.wrapContentSize())
-
+                    modifier = Modifier
+                        .then(if (!isUserMessage) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentSize())
                 )
-
             }
         }
     }

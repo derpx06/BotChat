@@ -26,8 +26,6 @@ fun TopBar(
     isDarkTheme: Boolean
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "Shimmer")
-
-    // Shimmer effect
     val shimmerOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -37,8 +35,6 @@ fun TopBar(
         ),
         label = "ShimmerOffset"
     )
-
-    // Galaxy-style rotation and movement
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -48,7 +44,6 @@ fun TopBar(
         ),
         label = "GalaxyRotation"
     )
-
     val drift by infiniteTransition.animateFloat(
         initialValue = -4f,
         targetValue = 4f,
@@ -58,7 +53,6 @@ fun TopBar(
         ),
         label = "GalaxyDrift"
     )
-
     AnimatedVisibility(
         visible = true,
         enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(animationSpec = tween(600)),
@@ -111,13 +105,11 @@ fun TopBar(
                         )
                     )
                     Spacer(modifier = Modifier.weight(1f))
-
-                    // Orbiting + rotating IconButton
                     IconButton(
                         onClick = onSettingsClick,
                         modifier = Modifier
-                            .offset(x = 2.dp) // horizontal drift like orbit
-                            .rotate(rotation)     // continuous rotation
+                            .offset(x = 2.dp)
+                            .rotate(rotation)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_star),

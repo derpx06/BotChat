@@ -1,10 +1,10 @@
 package com.example.botchat.ui.components.settings
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
@@ -12,58 +12,107 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.botchat.R
 import com.example.botchat.ui.theme.*
 
 @Composable
 fun ApiSettingsTab(
-    apiKey: String,
-    serverUrl: String,
-    selectedModel: String,
+    selectedProvider: String,
+    openRouterApiKey: String,
+    openRouterModel: String,
+    huggingFaceApiKey: String,
+    huggingFaceServerUrl: String,
+    huggingFaceModel: String,
     showAdvancedSettings: Boolean,
     cachingEnabled: Boolean,
-    showApiKey: Boolean,
-    onApiKeyChange: (String) -> Unit,
-    onServerUrlChange: (String) -> Unit,
-    onSelectedModelChange: (String) -> Unit,
+    showOpenRouterApiKey: Boolean,
+    showHuggingFaceApiKey: Boolean,
+    onSelectedProviderChange: (String) -> Unit,
+    onOpenRouterApiKeyChange: (String) -> Unit,
+    onOpenRouterModelChange: (String) -> Unit,
+    onHuggingFaceApiKeyChange: (String) -> Unit,
+    onHuggingFaceServerUrlChange: (String) -> Unit,
+    onHuggingFaceModelChange: (String) -> Unit,
     onAdvancedSettingsToggle: () -> Unit,
     onCachingToggle: (Boolean) -> Unit,
-    onApiKeyVisibilityToggle: () -> Unit,
+    onOpenRouterApiKeyVisibilityToggle: () -> Unit,
+    onHuggingFaceApiKeyVisibilityToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(16.dp)
+            .animateContentSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             text = "API Configuration",
-            style = MaterialTheme.typography.titleLarge.copy(
+            style = MaterialTheme.typography.labelLarge.copy(
                 color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
                 fontSize = 20.sp
             )
         )
-        ApiKeyInput(
-            apiKey = apiKey,
-            showApiKey = showApiKey,
-            onApiKeyChange = onApiKeyChange,
-            onVisibilityToggle = onApiKeyVisibilityToggle
+        ProviderSelectionInput(
+            selectedProvider = selectedProvider,
+            onProviderChange = onSelectedProviderChange
         )
-        ServerUrlInput(
-            serverUrl = serverUrl,
-            onServerUrlChange = onServerUrlChange
-        )
-        ModelSelectionInput(
-            selectedModel = selectedModel,
-            onModelChange = onSelectedModelChange
-        )
+        var selectedSubTabIndex by remember { mutableStateOf(if (selectedProvider == "openrouter") 0 else 1) }
+        LaunchedEffect(selectedProvider) {
+            selectedSubTabIndex = if (selectedProvider == "openrouter") 0 else 1
+        }
+        TabRow(
+            selectedTabIndex = selectedSubTabIndex,
+            containerColor = Transparent,
+            contentColor = if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .shadow(2.dp)
+        ) {
+            listOf("OpenRouter", "HuggingFace").forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedSubTabIndex == index,
+                    onClick = { selectedSubTabIndex = index },
+                    text = {
+                        Text(
+                            title,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontSize = 12.sp,
+                                color = if (selectedSubTabIndex == index) {
+                                    if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40
+                                } else {
+                                    if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite.copy(alpha = 0.7f) else SlateBlack.copy(alpha = 0.7f)
+                                }
+                            )
+                        )
+                    }
+                )
+            }
+        }
+        when (selectedSubTabIndex) {
+            0 -> OpenRouterSettingsSubTab(
+                apiKey = openRouterApiKey,
+                selectedModel = openRouterModel,
+                showApiKey = showOpenRouterApiKey,
+                onApiKeyChange = onOpenRouterApiKeyChange,
+                onSelectedModelChange = onOpenRouterModelChange,
+                onApiKeyVisibilityToggle = onOpenRouterApiKeyVisibilityToggle,
+                modifier = Modifier.fillMaxWidth()
+            )
+            1 -> HuggingFaceSettingsSubTab(
+                apiKey = huggingFaceApiKey,
+                serverUrl = huggingFaceServerUrl,
+                selectedModel = huggingFaceModel,
+                showApiKey = showHuggingFaceApiKey,
+                onApiKeyChange = onHuggingFaceApiKeyChange,
+                onServerUrlChange = onHuggingFaceServerUrlChange,
+                onSelectedModelChange = onHuggingFaceModelChange,
+                onApiKeyVisibilityToggle = onHuggingFaceApiKeyVisibilityToggle,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         AdvancedSettingsSection(
             showAdvancedSettings = showAdvancedSettings,
             cachingEnabled = cachingEnabled,
@@ -74,95 +123,15 @@ fun ApiSettingsTab(
 }
 
 @Composable
-private fun ApiKeyInput(
-    apiKey: String,
-    showApiKey: Boolean,
-    onApiKeyChange: (String) -> Unit,
-    onVisibilityToggle: () -> Unit
+fun ProviderSelectionInput(
+    selectedProvider: String,
+    onProviderChange: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
-            .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-            .padding(12.dp)
-    ) {
-        OutlinedTextField(
-            value = apiKey,
-            onValueChange = onApiKeyChange,
-            label = { Text("API Key", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)) },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = if (showApiKey) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            trailingIcon = {
-                IconButton(onClick = onVisibilityToggle) {
-                    Icon(
-                        painter = painterResource(id = if (showApiKey) R.drawable.visibility else R.drawable.visibility_off),
-                        contentDescription = "Toggle API Key Visibility",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Transparent,
-                unfocusedContainerColor = Transparent,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                cursorColor = MaterialTheme.colorScheme.onSurface
-            ),
-            shape = RoundedCornerShape(8.dp)
-        )
-    }
-}
-
-@Composable
-private fun ServerUrlInput(
-    serverUrl: String,
-    onServerUrlChange: (String) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
-            .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-            .padding(12.dp)
-    ) {
-        OutlinedTextField(
-            value = serverUrl,
-            onValueChange = onServerUrlChange,
-            label = { Text("Server URL", style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)) },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Transparent,
-                unfocusedContainerColor = Transparent,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                cursorColor = MaterialTheme.colorScheme.onSurface
-            ),
-            shape = RoundedCornerShape(8.dp)
-        )
-    }
-}
-
-@Composable
-private fun ModelSelectionInput(
-    selectedModel: String,
-    onModelChange: (String) -> Unit
-) {
-    val models = listOf(
-        "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",  // New model
-        "microsoft/phi-3-mini-4k-instruct",
-        "google/gemma-2b-it",
-        "Qwen/Qwen3-0.6B",
-        "NousResearch/Hermes-2-Pro-Mistral-7B",
-        "facebook/blenderbot-400M-distill"
-    )
     var expanded by remember { mutableStateOf(false) }
+    val providers = listOf("openrouter", "huggingface")
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
@@ -170,36 +139,57 @@ private fun ModelSelectionInput(
             .padding(12.dp)
     ) {
         OutlinedTextField(
-            value = selectedModel,
+            value = selectedProvider.replaceFirstChar { it.uppercase() },
             onValueChange = { /* Read-only */ },
-            label = { Text("Hugging Face Model") },
+            label = { Text("Service Provider") },
             modifier = Modifier.fillMaxWidth(),
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Model")
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Provider")
                 }
             },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Transparent,
-                unfocusedContainerColor = Transparent,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                cursorColor = MaterialTheme.colorScheme.onSurface
-            ),
+        colors = TextFieldDefaults.colors(
+    //  containerColor = Transparent,
+     focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+       //unfocusedIndicator = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+             //= MaterialTheme.colorScheme.error,
+       cursorColor = MaterialTheme.colorScheme.onSurface,
+        errorCursorColor = MaterialTheme.colorScheme.error,
+        focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+        unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        errorTrailingIconColor = MaterialTheme.colorScheme.error,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        errorLabelColor = MaterialTheme.colorScheme.error,
+        focusedSupportingTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedSupportingTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        errorSupportingTextColor = MaterialTheme.colorScheme.error,
+        //textColor = MaterialTheme.colorScheme.onSurface, // Added for text color
+        //placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+        disabledSupportingTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+        disabledIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+        disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+        ),
             shape = RoundedCornerShape(8.dp)
         )
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
+                .shadow(4.dp)
         ) {
-            models.forEach { model ->
+            providers.forEach { provider ->
                 DropdownMenuItem(
-                    text = { Text(model) },
+                    text = { Text(provider.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium) },
                     onClick = {
-                        onModelChange(model)
+                        onProviderChange(provider)
                         expanded = false
-                    }
+                    },
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
         }
@@ -207,22 +197,19 @@ private fun ModelSelectionInput(
 }
 
 @Composable
-private fun AdvancedSettingsSection(
+fun AdvancedSettingsSection(
     showAdvancedSettings: Boolean,
     cachingEnabled: Boolean,
     onAdvancedSettingsToggle: () -> Unit,
-    onCachingToggle: (Boolean) -> Unit
+    onCachingToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
-            .border(
-                0.5.dp,
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                RoundedCornerShape(12.dp)
-            )
+            .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
