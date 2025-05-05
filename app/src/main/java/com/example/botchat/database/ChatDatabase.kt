@@ -5,9 +5,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [ChatMessageEntity::class], version = 1, exportSchema = false)
+@Database(entities = [ChatMessage::class], version = 1, exportSchema = false)
 abstract class ChatDatabase : RoomDatabase() {
-    abstract fun chatMessageDao(): ChatDao
+    abstract fun chatDao(): ChatDao
 
     companion object {
         @Volatile
@@ -20,7 +20,7 @@ abstract class ChatDatabase : RoomDatabase() {
                     ChatDatabase::class.java,
                     "chat_database"
                 )
-                    .fallbackToDestructiveMigration() // Drops database on schema change (for development)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

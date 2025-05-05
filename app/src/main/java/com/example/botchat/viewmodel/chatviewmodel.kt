@@ -4,21 +4,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.botchat.api.HuggingFaceApiService
 import com.example.botchat.api.OpenRouterApiService
-import com.example.botchat.data.ChatMessage
 import com.example.botchat.data.HuggingFaceRequest
 import com.example.botchat.data.OpenRouterMessage
 import com.example.botchat.data.OpenRouterRequest
 import com.example.botchat.data.UserSettingsDataStore
+import com.example.botchat.database.ChatMessage
+import com.example.botchat.Repository.ChatRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.util.Log
-import com.example.botchat.Repository.ChatRepository
-import com.example.botchat.database.ChatDatabase
 import java.io.IOException
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 
 data class UiState(
     val messages: List<ChatMessage> = emptyList(),
@@ -30,21 +29,29 @@ data class UiState(
 
 class ChatViewModel(
     private val settingsDataStore: UserSettingsDataStore,
+    private val chatRepository: ChatRepository,
     private val openRouterApiService: OpenRouterApiService = OpenRouterApiService.create(),
-    private val huggingFaceApiService: HuggingFaceApiService = HuggingFaceApiService.create(),
-   // private val chatRepository: ChatRepository = ChatRepository(ChatDatabase.getDatabase().chatMessageDao())
+    private val huggingFaceApiService: HuggingFaceApiService = HuggingFaceApiService.create()
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            chatRepository.getAllChatMessages().collect { messages ->
+                _uiState.update { it.copy(messages = messages) }
+            }
+        }
+    }
+
     fun updateInputText(text: String) {
-        _uiState.value = _uiState.value.copy(inputText = text, errorMessage = null)
+        _uiState.update { it.copy(inputText = text, errorMessage = null) }
     }
 
     fun sendMessage() {
         val inputText = _uiState.value.inputText.trim()
         if (inputText.isBlank()) {
-            _uiState.value = _uiState.value.copy(errorMessage = "Message cannot be empty")
+            _uiState.update { it.copy(errorMessage = "Message cannot be empty") }
             return
         }
 
@@ -69,36 +76,44 @@ class ChatViewModel(
 
                 if (apiKey.isBlank()) {
                     Log.e("ChatViewModel", "$provider API key is missing")
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = "$provider API key is missing",
-                        showErrorPage = true
-                    )
+                    _uiState.update {
+                        it.copy(
+                            errorMessage = "$provider API key is missing",
+                            showErrorPage = true
+                        )
+                    }
                     return@launch
                 }
                 if (model.isBlank()) {
                     Log.e("ChatViewModel", "$provider model is missing")
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = "Please select a $provider model",
-                        showErrorPage = true
-                    )
+                    _uiState.update {
+                        it.copy(
+                            errorMessage = "Please select a $provider model",
+                            showErrorPage = true
+                        )
+                    }
                     return@launch
                 }
                 if (isHuggingFace && apiEndpoint.isBlank()) {
                     Log.e("ChatViewModel", "HuggingFace endpoint is missing")
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = "HuggingFace endpoint is missing",
-                        showErrorPage = true
-                    )
+                    _uiState.update {
+                        it.copy(
+                            errorMessage = "HuggingFace endpoint is missing",
+                            showErrorPage = true
+                        )
+                    }
                     return@launch
                 }
 
                 val userMessage = ChatMessage(content = inputText, isUser = true)
-                _uiState.value = _uiState.value.copy(
-                    messages = _uiState.value.messages + userMessage,
-                    inputText = "",
-                    isLoading = true,
-                    errorMessage = null
-                )
+                chatRepository.insertChatMessage(userMessage)
+                _uiState.update {
+                    it.copy(
+                        inputText = "",
+                        isLoading = true,
+                        errorMessage = null
+                    )
+                }
 
                 val responseText = if (!isHuggingFace) {
                     val request = OpenRouterRequest(
@@ -130,48 +145,62 @@ class ChatViewModel(
                 Log.d("ChatViewModel", "Response received: $responseText")
                 if (responseText.isNotBlank()) {
                     val assistantMessage = ChatMessage(content = responseText, isUser = false)
-                    _uiState.value = _uiState.value.copy(
-                        messages = _uiState.value.messages + assistantMessage,
-                        isLoading = false
-                    )
+                    chatRepository.insertChatMessage(assistantMessage)
+                    _uiState.update { it.copy(isLoading = false) }
                 } else {
                     Log.w("ChatViewModel", "Empty response from $provider")
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        errorMessage = "No response received from $provider"
-                    )
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "No response received from $provider"
+                        )
+                    }
                 }
             } catch (e: IOException) {
                 Log.e("ChatViewModel", "Network error: ${e.message}", e)
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = "Network error: ${e.message}",
-                    showErrorPage = true
-                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Network error: ${e.message}",
+                        showErrorPage = true
+                    )
+                }
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "General error: ${e.message}", e)
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = "Error: ${e.message}",
-                    showErrorPage = true
-                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error: ${e.message}",
+                        showErrorPage = true
+                    )
+                }
             }
         }
     }
 
     fun cancelProcessing() {
         Log.d("ChatViewModel", "Cancelling processing")
-        _uiState.value = _uiState.value.copy(
-            isLoading = false,
-            errorMessage = "Processing cancelled"
-        )
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                errorMessage = "Processing cancelled"
+            )
+        }
     }
 
     fun clearError() {
         Log.d("ChatViewModel", "Clearing error")
-        _uiState.value = _uiState.value.copy(
-            errorMessage = null,
-            showErrorPage = false
-        )
+        _uiState.update {
+            it.copy(
+                errorMessage = null,
+                showErrorPage = false
+            )
+        }
+    }
+
+    fun clearMessages() {
+        viewModelScope.launch {
+            chatRepository.deleteAllChatMessages()
+        }
     }
 }

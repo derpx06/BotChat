@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.botchat.data.ChatMessage
+import com.example.botchat.database.ChatMessage
 import com.example.botchat.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -43,6 +43,8 @@ fun ChatMessages(
 
     Box(
         modifier = modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
             .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
             .shadow(
                 elevation = 3.dp,
@@ -119,7 +121,7 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean) {
                 .fillMaxWidth()
                 .padding(
                     start = if (isUserMessage) 48.dp else 12.dp,
-                    end = if (isUserMessage) 12.dp else 48.dp
+                    end = if (isUserMessage) 12.dp else 12.dp
                 )
                 .wrapContentWidth(alignment)
         ) {
@@ -157,7 +159,10 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean) {
                         color = if (isDarkTheme) PureWhite else SlateBlack
                     ),
                     modifier = Modifier
-                        .then(if (!isUserMessage) Modifier.fillMaxWidth(0.8f) else Modifier.wrapContentSize())
+                        .then(
+                            if (isUserMessage) Modifier.wrapContentSize()
+                            else Modifier.fillMaxWidth(0.95f) // Maximized AI message width
+                        )
                 )
             }
         }
