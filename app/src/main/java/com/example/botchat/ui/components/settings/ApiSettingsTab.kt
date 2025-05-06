@@ -1,6 +1,8 @@
 package com.example.botchat.ui.components.settings
 
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -8,11 +10,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.ui.theme.*
@@ -45,15 +48,17 @@ fun ApiSettingsTab(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .animateContentSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .animateContentSize(animationSpec = tween(300)),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "API Configuration",
-            style = MaterialTheme.typography.labelLarge.copy(
+            style = MaterialTheme.typography.headlineSmall.copy(
                 color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
-                fontSize = 20.sp
-            )
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Medium
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
         )
         ProviderSelectionInput(
             selectedProvider = selectedProvider,
@@ -63,32 +68,45 @@ fun ApiSettingsTab(
         LaunchedEffect(selectedProvider) {
             selectedSubTabIndex = if (selectedProvider == "openrouter") 0 else 1
         }
-        TabRow(
-            selectedTabIndex = selectedSubTabIndex,
-            containerColor = Transparent,
-            contentColor = if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .shadow(2.dp)
+        AnimatedVisibility(
+            visible = true,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
         ) {
-            listOf("OpenRouter", "HuggingFace").forEachIndexed { index, title ->
-                Tab(
-                    selected = selectedSubTabIndex == index,
-                    onClick = { selectedSubTabIndex = index },
-                    text = {
-                        Text(
-                            title,
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontSize = 12.sp,
-                                color = if (selectedSubTabIndex == index) {
-                                    if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40
-                                } else {
-                                    if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite.copy(alpha = 0.7f) else SlateBlack.copy(alpha = 0.7f)
-                                }
+            TabRow(
+                selectedTabIndex = selectedSubTabIndex,
+                containerColor = Transparent,
+                contentColor = if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier
+                            .tabIndicatorOffset(tabPositions[selectedSubTabIndex])
+                            .clip(RoundedCornerShape(50)),
+                        color = if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                        height = 4.dp
+                    )
+                }
+            ) {
+                listOf("OpenRouter", "HuggingFace").forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedSubTabIndex == index,
+                        onClick = { selectedSubTabIndex = index },
+                        text = {
+                            Text(
+                                title,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (selectedSubTabIndex == index) {
+                                        if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40
+                                    } else {
+                                        if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite.copy(alpha = 0.7f) else SlateBlack.copy(alpha = 0.7f)
+                                    }
+                                )
                             )
-                        )
-                    }
-                )
+                        }
+                    )
+                }
             }
         }
         when (selectedSubTabIndex) {
@@ -133,64 +151,58 @@ fun ProviderSelectionInput(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
-            .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-            .padding(12.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
+            .padding(16.dp)
     ) {
         OutlinedTextField(
             value = selectedProvider.replaceFirstChar { it.uppercase() },
             onValueChange = { /* Read-only */ },
-            label = { Text("Service Provider") },
+            label = { Text("Service Provider", color = MaterialTheme.colorScheme.onSurface) },
             modifier = Modifier.fillMaxWidth(),
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Provider")
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Provider", tint = MaterialTheme.colorScheme.onSurface)
                 }
             },
-        colors = TextFieldDefaults.colors(
-    //  containerColor = Transparent,
-     focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-       //unfocusedIndicator = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-             //= MaterialTheme.colorScheme.error,
-       cursorColor = MaterialTheme.colorScheme.onSurface,
-        errorCursorColor = MaterialTheme.colorScheme.error,
-        focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-        errorTrailingIconColor = MaterialTheme.colorScheme.error,
-        focusedLabelColor = MaterialTheme.colorScheme.primary,
-        unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-        errorLabelColor = MaterialTheme.colorScheme.error,
-        focusedSupportingTextColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedSupportingTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-        errorSupportingTextColor = MaterialTheme.colorScheme.error,
-        //textColor = MaterialTheme.colorScheme.onSurface, // Added for text color
-        //placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-        disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-        disabledSupportingTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-        disabledIndicatorColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-        disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-        ),
-            shape = RoundedCornerShape(8.dp)
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Transparent,
+                unfocusedContainerColor = Transparent,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                focusedLabelColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                cursorColor = MaterialTheme.colorScheme.onSurface,
+                focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            ),
+            shape = RoundedCornerShape(20.dp)
         )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
-                .shadow(4.dp)
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn(animationSpec = tween(200)) + scaleIn(initialScale = 0.95f),
+            exit = fadeOut(animationSpec = tween(200)) + scaleOut(targetScale = 0.95f)
         ) {
-            providers.forEach { provider ->
-                DropdownMenuItem(
-                    text = { Text(provider.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium) },
-                    onClick = {
-                        onProviderChange(provider)
-                        expanded = false
-                    },
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                )
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface)
+                    .clip(RoundedCornerShape(20.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
+            ) {
+                providers.forEach { provider ->
+                    DropdownMenuItem(
+                        text = { Text(provider.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium) },
+                        onClick = {
+                            onProviderChange(provider)
+                            expanded = false
+                        },
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
             }
         }
     }
@@ -207,10 +219,10 @@ fun AdvancedSettingsSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
-            .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-            .padding(12.dp),
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
@@ -219,7 +231,10 @@ fun AdvancedSettingsSection(
         ) {
             Text(
                 text = "Advanced Settings",
-                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Medium
+                ),
                 modifier = Modifier.weight(1f)
             )
             Checkbox(
@@ -227,12 +242,16 @@ fun AdvancedSettingsSection(
                 onCheckedChange = { onAdvancedSettingsToggle() },
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.primary,
-                    uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     checkmarkColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
-        if (showAdvancedSettings) {
+        AnimatedVisibility(
+            visible = showAdvancedSettings,
+            enter = fadeIn(animationSpec = tween(300)) + expandVertically(),
+            exit = fadeOut(animationSpec = tween(300)) + shrinkVertically()
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -241,7 +260,10 @@ fun AdvancedSettingsSection(
             ) {
                 Text(
                     text = "Enable Caching",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Medium
+                    ),
                     modifier = Modifier.weight(1f)
                 )
                 Switch(
@@ -250,8 +272,8 @@ fun AdvancedSettingsSection(
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.primary,
                         checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 )
             }

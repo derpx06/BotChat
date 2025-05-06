@@ -45,59 +45,52 @@ fun ChatScreen(
             .safeDrawingPadding()
             .statusBarsPadding()
     ) {
-        if (uiState.showErrorPage) {
-            ErrorPage(
-                isDarkTheme = isDarkTheme,
-                onDismiss = chatViewModel::clearError
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            TopBar(
+                onSettingsClick = { settingViewModel.toggleSettings() },
+                isDarkTheme = isDarkTheme
             )
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize()
+            ChatMessages(
+                messages = uiState.messages,
+                isLoading = uiState.isLoading,
+                modifier = Modifier.weight(1f),
+                isDarkTheme = isDarkTheme
+            )
+            ChatInputSection(
+                inputText = uiState.inputText,
+                onInputChange = chatViewModel::updateInputText,
+                onSendClick = chatViewModel::sendMessage,
+                onStopClick = chatViewModel::cancelProcessing,
+                isLoading = uiState.isLoading,
+                isDarkTheme = isDarkTheme
+            )
+            Button(
+                onClick = { chatViewModel.clearMessages() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isDarkTheme) ElectricCyan else Purple40,
+                    contentColor = if (isDarkTheme) MidnightBlack else PureWhite
+                )
             ) {
-                TopBar(
-                    onSettingsClick = { settingViewModel.toggleSettings() },
-                    isDarkTheme = isDarkTheme
-                )
-                ChatMessages(
-                    messages = uiState.messages,
-                    isLoading = uiState.isLoading,
-                    modifier = Modifier.weight(1f),
-                    isDarkTheme = isDarkTheme
-                )
-                ChatInputSection(
-                    inputText = uiState.inputText,
-                    onInputChange = chatViewModel::updateInputText,
-                    onSendClick = chatViewModel::sendMessage,
-                    onStopClick = chatViewModel::cancelProcessing,
-                    isLoading = uiState.isLoading,
-                    isDarkTheme = isDarkTheme
-                )
-                // Clear Chat button
-                Button(
-                    onClick = { chatViewModel.clearMessages() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isDarkTheme) ElectricCyan else Purple40,
-                        contentColor = if (isDarkTheme) MidnightBlack else PureWhite
-                    )
-                ) {
-                    Text("Clear Chat")
-                }
+                Text("Clear Chat")
             }
         }
 
         AnimatedVisibility(
-            visible = uiState.errorMessage != null && !uiState.showErrorPage,
-            enter = fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.8f),
-            exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f)
+            visible = uiState.showErrorDialog && uiState.errorMessage != null,
+            enter = fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.9f),
+            exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.9f)
         ) {
             uiState.errorMessage?.let { errorMessage ->
                 ErrorDialog(
                     errorMessage = errorMessage,
+                    isDarkTheme = isDarkTheme,
                     onDismiss = chatViewModel::clearError,
-                    isDarkTheme = isDarkTheme
+                    onRetry = uiState.retryAction
                 )
             }
         }

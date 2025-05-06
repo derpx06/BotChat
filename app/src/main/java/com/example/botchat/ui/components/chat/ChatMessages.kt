@@ -17,6 +17,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.database.ChatMessage
@@ -65,7 +69,7 @@ fun ChatMessages(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 56.dp),
+                .padding(6.dp),
             state = listState,
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -151,22 +155,62 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean) {
                         )
                     }
                     .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .widthIn(max = 300.dp) // Ensure it fits small screens
             ) {
+                val annotatedText = if (!isUserMessage) {
+                    parseResponse(message.content)
+                } else {
+                    AnnotatedString(message.content)
+                }
                 Text(
-                    text = message.content,
+                    text = annotatedText,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontSize = 15.sp,
                         color = if (isDarkTheme) PureWhite else SlateBlack
                     ),
-                    modifier = Modifier
-                        .then(
-                            if (isUserMessage) Modifier.wrapContentSize()
-                            else Modifier.fillMaxWidth(0.95f) // Maximized AI message width
-                        )
+                    modifier = Modifier.fillMaxWidth() // Text wraps within max width
                 )
             }
         }
     }
+}
+
+fun parseResponse(text: String): AnnotatedString {
+    val builder = AnnotatedString.Builder()
+    var currentIndex = 0
+    text.split("\n").forEach { line ->
+        val trimmedLine = line.trim()
+        if (trimmedLine.startsWith("# ")) {
+            val titleText = trimmedLine.substring(2).trim() + "\n"
+            builder.append(titleText)
+            builder.addStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp // Slightly larger than normal text
+                ),
+                currentIndex,
+                currentIndex + titleText.length
+            )
+            currentIndex += titleText.length
+        } else if (trimmedLine.startsWith("## ")) {
+            val subtitleText = trimmedLine.substring(3).trim() + "\n"
+            builder.append(subtitleText)
+            builder.addStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp // Just above normal text
+                ),
+                currentIndex,
+                currentIndex + subtitleText.length
+            )
+            currentIndex += subtitleText.length
+        } else {
+            val normalText = line + "\n"
+            builder.append(normalText)
+            currentIndex += normalText.length
+        }
+    }
+    return builder.toAnnotatedString()
 }
 
 @Composable

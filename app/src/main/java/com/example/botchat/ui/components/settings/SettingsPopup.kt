@@ -2,15 +2,16 @@ package com.example.botchat.ui.components.settings
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -104,11 +105,11 @@ fun SettingsSheetBottom(
                     .padding(padding)
                     .padding(16.dp)
                     .animateContentSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
                     text = "Settings",
-                    style = MaterialTheme.typography.labelLarge.copy(
+                    style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 20.sp,
                         color = if (darkModeEnabled) PureWhite else SlateBlack
                     )
@@ -117,7 +118,14 @@ fun SettingsSheetBottom(
                     selectedTabIndex = selectedTabIndex,
                     containerColor = Transparent,
                     contentColor = if (darkModeEnabled) ElectricCyan else Purple40,
-                    modifier = Modifier.shadow(2.dp)
+                    indicator = { tabPositions ->
+                        TabRowDefaults.Indicator(
+                            modifier = Modifier
+                                .tabIndicatorOffset(tabPositions[selectedTabIndex])
+                                .clip(RoundedCornerShape(50)),
+                            color = if (darkModeEnabled) ElectricCyan else Purple40
+                        )
+                    }
                 ) {
                     listOf("API", "General", "Other").forEachIndexed { index, title ->
                         Tab(
@@ -127,7 +135,7 @@ fun SettingsSheetBottom(
                                 Text(
                                     title,
                                     style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontSize = 14.sp,
+                                        fontSize = 16.sp,
                                         color = if (selectedTabIndex == index) {
                                             if (darkModeEnabled) ElectricCyan else Purple40
                                         } else {

@@ -6,11 +6,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.ui.theme.*
@@ -32,7 +31,7 @@ fun OtherSettingsTab(
     ) {
         Text(
             text = "Other Settings",
-            style = MaterialTheme.typography.labelLarge.copy(
+            style = MaterialTheme.typography.titleLarge.copy(
                 color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
                 fontSize = 20.sp
             )

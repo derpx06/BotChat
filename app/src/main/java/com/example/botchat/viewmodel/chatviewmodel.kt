@@ -18,13 +18,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.util.Log
 import java.io.IOException
+import java.net.UnknownHostException
 
 data class UiState(
     val messages: List<ChatMessage> = emptyList(),
     val inputText: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val showErrorPage: Boolean = false
+    val showErrorDialog: Boolean = false,
+    val retryAction: (() -> Unit)? = null
 )
 
 class ChatViewModel(
@@ -45,13 +47,19 @@ class ChatViewModel(
     }
 
     fun updateInputText(text: String) {
-        _uiState.update { it.copy(inputText = text, errorMessage = null) }
+        _uiState.update { it.copy(inputText = text, errorMessage = null, showErrorDialog = false) }
     }
 
     fun sendMessage() {
         val inputText = _uiState.value.inputText.trim()
         if (inputText.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Message cannot be empty") }
+            _uiState.update {
+                it.copy(
+                    errorMessage = "Message cannot be empty",
+                    showErrorDialog = true,
+                    retryAction = null
+                )
+            }
             return
         }
 
@@ -78,8 +86,9 @@ class ChatViewModel(
                     Log.e("ChatViewModel", "$provider API key is missing")
                     _uiState.update {
                         it.copy(
-                            errorMessage = "$provider API key is missing",
-                            showErrorPage = true
+                            errorMessage = "Please provide a valid $provider API key in settings",
+                            showErrorDialog = true,
+                            retryAction = null
                         )
                     }
                     return@launch
@@ -88,8 +97,9 @@ class ChatViewModel(
                     Log.e("ChatViewModel", "$provider model is missing")
                     _uiState.update {
                         it.copy(
-                            errorMessage = "Please select a $provider model",
-                            showErrorPage = true
+                            errorMessage = "Please select a $provider model in settings",
+                            showErrorDialog = true,
+                            retryAction = null
                         )
                     }
                     return@launch
@@ -98,8 +108,9 @@ class ChatViewModel(
                     Log.e("ChatViewModel", "HuggingFace endpoint is missing")
                     _uiState.update {
                         it.copy(
-                            errorMessage = "HuggingFace endpoint is missing",
-                            showErrorPage = true
+                            errorMessage = "Please provide a HuggingFace endpoint in settings",
+                            showErrorDialog = true,
+                            retryAction = null
                         )
                     }
                     return@launch
@@ -111,7 +122,9 @@ class ChatViewModel(
                     it.copy(
                         inputText = "",
                         isLoading = true,
-                        errorMessage = null
+                        errorMessage = null,
+                        showErrorDialog = false,
+                        retryAction = null
                     )
                 }
 
@@ -128,7 +141,7 @@ class ChatViewModel(
                         ?.firstOrNull()
                         ?.let { choice -> (choice as? Map<*, *>)?.get("message") }
                         ?.let { message -> (message as? Map<*, *>)?.get("content") as? String }
-                        ?: ""
+                        ?: throw IOException("No response received from OpenRouter")
                 } else {
                     val request = HuggingFaceRequest(
                         inputs = inputText,
@@ -139,39 +152,42 @@ class ChatViewModel(
                     )
                     val url = "$apiEndpoint/models/$model"
                     val response = huggingFaceApiService.query("Bearer $apiKey", request, url)
-                    response.body()?.firstOrNull()?.generated_text ?: ""
+                    response.body()?.firstOrNull()?.generated_text
+                        ?: throw IOException("No response received from HuggingFace")
                 }
 
                 Log.d("ChatViewModel", "Response received: $responseText")
-                if (responseText.isNotBlank()) {
-                    val assistantMessage = ChatMessage(content = responseText, isUser = false)
-                    chatRepository.insertChatMessage(assistantMessage)
-                    _uiState.update { it.copy(isLoading = false) }
-                } else {
-                    Log.w("ChatViewModel", "Empty response from $provider")
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "No response received from $provider"
-                        )
-                    }
+                val assistantMessage = ChatMessage(content = responseText, isUser = false)
+                chatRepository.insertChatMessage(assistantMessage)
+                _uiState.update { it.copy(isLoading = false) }
+            } catch (e: UnknownHostException) {
+                Log.e("ChatViewModel", "No internet connection: ${e.message}", e)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "No internet connection. Please check your network and try again.",
+                        showErrorDialog = true,
+                        retryAction = { sendMessage() }
+                    )
                 }
             } catch (e: IOException) {
                 Log.e("ChatViewModel", "Network error: ${e.message}", e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Network error: ${e.message}",
-                        showErrorPage = true
+                        errorMessage = "Network error: ${e.message ?: "Unable to connect to the server"}. Please try again.",
+                        showErrorDialog = true,
+                        retryAction = { sendMessage() }
                     )
                 }
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "General error: ${e.message}", e)
+                Log.e("ChatViewModel", "Unexpected error: ${e.message}", e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error: ${e.message}",
-                        showErrorPage = true
+                        errorMessage = "Unexpected error: ${e.message ?: "Something went wrong"}. Please try again or check settings.",
+                        showErrorDialog = true,
+                        retryAction = null
                     )
                 }
             }
@@ -183,7 +199,9 @@ class ChatViewModel(
         _uiState.update {
             it.copy(
                 isLoading = false,
-                errorMessage = "Processing cancelled"
+                errorMessage = "Processing cancelled",
+                showErrorDialog = true,
+                retryAction = { sendMessage() }
             )
         }
     }
@@ -193,7 +211,8 @@ class ChatViewModel(
         _uiState.update {
             it.copy(
                 errorMessage = null,
-                showErrorPage = false
+                showErrorDialog = false,
+                retryAction = null
             )
         }
     }
@@ -201,6 +220,7 @@ class ChatViewModel(
     fun clearMessages() {
         viewModelScope.launch {
             chatRepository.deleteAllChatMessages()
+            _uiState.update { it.copy(errorMessage = null, showErrorDialog = false, retryAction = null) }
         }
     }
 }

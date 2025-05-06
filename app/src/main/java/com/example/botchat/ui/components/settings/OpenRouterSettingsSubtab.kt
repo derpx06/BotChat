@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.ui.theme.*
@@ -25,16 +24,17 @@ fun OpenRouterSettingsSubTab(
     onApiKeyVisibilityToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    //Open router
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp)
             .animateContentSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "OpenRouter Configuration",
-            style = MaterialTheme.typography.labelLarge.copy(
+            style = MaterialTheme.typography.titleLarge.copy(
                 color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
                 fontSize = 18.sp
             )

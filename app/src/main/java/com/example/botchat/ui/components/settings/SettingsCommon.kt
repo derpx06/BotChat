@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,18 +35,10 @@ fun SettingsSwitchItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                    )
-                )
-            )
-            .border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
-            .padding(horizontal = 20.dp, vertical = 16.dp)
-            .shadow(6.dp, RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+            .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         Text(
             text = label,
@@ -63,9 +54,9 @@ fun SettingsSwitchItem(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.primary,
-                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                uncheckedTrackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                uncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             ),
             modifier = Modifier.scale(0.85f)
         )
@@ -84,18 +75,10 @@ fun ApiKeyInput(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                    )
-                )
-            )
-            .border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
             .padding(16.dp)
-            .shadow(6.dp, RoundedCornerShape(20.dp))
     ) {
         OutlinedTextField(
             value = apiKey,
@@ -131,7 +114,7 @@ fun ApiKeyInput(
                 unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 errorTrailingIconColor = MaterialTheme.colorScheme.error,
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 errorLabelColor = MaterialTheme.colorScheme.error,
@@ -170,18 +153,10 @@ fun ModelSelectionInput(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                    )
-                )
-            )
-            .border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
             .padding(16.dp)
-            .shadow(6.dp, RoundedCornerShape(20.dp))
     ) {
         OutlinedTextField(
             value = selectedModel,
@@ -216,7 +191,7 @@ fun ModelSelectionInput(
                 unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 errorTrailingIconColor = MaterialTheme.colorScheme.error,
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.onSurface,
                 unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                 disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 errorLabelColor = MaterialTheme.colorScheme.error,
@@ -245,15 +220,9 @@ fun ModelSelectionInput(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant,
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
-                        )
-                    )
-                )
-                .shadow(8.dp, RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .clip(RoundedCornerShape(16.dp))
+                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
                 .width(IntrinsicSize.Max)
                 .heightIn(max = 300.dp)
         ) {
@@ -278,7 +247,7 @@ fun ModelSelectionInput(
                             onModelChange(model)
                             expanded = false
                         },
-                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
