@@ -8,7 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,9 +22,11 @@ fun OtherSettingsTab(
     soundEffectsEnabled: Boolean,
     analyticsEnabled: Boolean,
     selectedTheme: String,
+    darkModeSetting: String,
     onSoundEffectsToggle: (Boolean) -> Unit,
     onAnalyticsToggle: (Boolean) -> Unit,
     onThemeChange: (String) -> Unit,
+    onDarkModeChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -57,11 +59,96 @@ fun OtherSettingsTab(
             enter = fadeIn(tween(300)) + scaleIn(initialScale = 0.95f),
             exit = fadeOut(tween(300)) + scaleOut(targetScale = 0.95f)
         ) {
+            DarkModeSelectionSection(
+                darkModeSetting = darkModeSetting,
+                onDarkModeChange = onDarkModeChange
+            )
+        }
+        AnimatedVisibility(
+            visible = true,
+            enter = fadeIn(tween(300)) + scaleIn(initialScale = 0.95f),
+            exit = fadeOut(tween(300)) + scaleOut(targetScale = 0.95f)
+        ) {
             ThemeSelectionSection(
                 selectedTheme = selectedTheme,
                 onThemeChange = onThemeChange
             )
         }
+    }
+}
+
+@Composable
+fun DarkModeSelectionSection(
+    darkModeSetting: String,
+    onDarkModeChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.15f))
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Dark Mode",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
+                fontSize = 16.sp
+            )
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            listOf("System", "Dark", "Light").forEach { mode ->
+                DarkModeBox(
+                    mode = mode,
+                    isSelected = darkModeSetting == mode.lowercase(),
+                    onClick = { onDarkModeChange(mode.lowercase()) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DarkModeBox(
+    mode: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isDarkTheme = MaterialTheme.colorScheme.background == MidnightBlack
+    Box(
+        modifier = modifier
+            .padding(horizontal = 4.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .border(
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) {
+                    if (isDarkTheme) ElectricCyan else Purple40
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                },
+                shape = RoundedCornerShape(16.dp)
+            )
+            .clickable { onClick() }
+            .padding(12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = mode,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = if (isDarkTheme) PureWhite else SlateBlack,
+                fontSize = 14.sp,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+            )
+        )
     }
 }
 
@@ -83,7 +170,7 @@ fun ThemeSelectionSection(
         Text(
             text = "Themes",
             style = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurface,
+                color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
                 fontSize = 16.sp
             )
         )
@@ -135,6 +222,39 @@ fun ThemeBox(
                 color = if (isDarkTheme) PureWhite else SlateBlack,
                 fontSize = 14.sp,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+            )
+        )
+    }
+}
+
+@Composable
+fun SettingsSwitchItem(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
+                fontSize = 16.sp
+            )
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                checkedTrackColor = if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan.copy(alpha = 0.5f) else Purple40.copy(alpha = 0.5f),
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurface,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
             )
         )
     }

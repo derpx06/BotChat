@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,11 +21,9 @@ import com.example.botchat.ui.theme.*
 
 @Composable
 fun GeneralSettingsTab(
-    darkModeEnabled: Boolean,
     notificationsEnabled: Boolean,
     historyRetentionDays: Int,
     systemPrompt: String,
-    onDarkModeToggle: (Boolean) -> Unit,
     onNotificationsToggle: () -> Unit,
     onRetentionChange: (Int) -> Unit,
     onSystemPromptChange: (String) -> Unit,
@@ -46,12 +44,6 @@ fun GeneralSettingsTab(
                 fontWeight = FontWeight.Medium
             ),
             modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        SettingsSwitchItem(
-            label = "Dark Mode",
-            checked = darkModeEnabled,
-            onCheckedChange = onDarkModeToggle
         )
 
         SettingsSwitchItem(
@@ -117,3 +109,4 @@ fun SystemPromptInput(
         )
     }
 }
+

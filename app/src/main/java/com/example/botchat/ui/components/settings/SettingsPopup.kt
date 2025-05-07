@@ -1,8 +1,8 @@
 package com.example.botchat.ui.components.settings
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -12,12 +12,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.botchat.ui.theme.*
 import com.example.botchat.viewmodel.SettingViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,7 +25,8 @@ fun SettingsSheetBottom(
     viewModel: SettingViewModel,
     onDismiss: () -> Unit
 ) {
-    val darkModeEnabled by viewModel.darkModeEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val darkModeEnabled = viewModel.getDarkModeEnabled()
+    val darkModeSetting by viewModel.darkModeSetting.collectAsStateWithLifecycle(initialValue = "system")
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle(initialValue = true)
     val cachingEnabled by viewModel.cachingEnabled.collectAsStateWithLifecycle(initialValue = true)
     val analyticsEnabled by viewModel.analyticsEnabled.collectAsStateWithLifecycle(initialValue = false)
@@ -44,157 +45,109 @@ fun SettingsSheetBottom(
     var showAdvancedSettings by remember { mutableStateOf(false) }
     var showOpenRouterApiKey by remember { mutableStateOf(false) }
     var showHuggingFaceApiKey by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(),
         containerColor = if (darkModeEnabled) MidnightBlack else CloudWhite,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        tonalElevation = BottomSheetDefaults.Elevation
     ) {
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(padding)
-                    .padding(16.dp)
-                    .animateContentSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "Settings",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontSize = 20.sp,
-                        color = if (darkModeEnabled) PureWhite else SlateBlack
-                    )
+                .padding(20.dp)
+                .animateContentSize(animationSpec = tween(300)),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (darkModeEnabled) PureWhite else SlateBlack
                 )
-                TabRow(
-                    selectedTabIndex = selectedTabIndex,
-                    containerColor = Transparent,
-                    contentColor = if (darkModeEnabled) ElectricCyan else Purple40,
-                    indicator = { tabPositions ->
-                        TabRowDefaults.Indicator(
-                            modifier = Modifier
-                                .tabIndicatorOffset(tabPositions[selectedTabIndex])
-                                .clip(RoundedCornerShape(50)),
-                            color = if (darkModeEnabled) ElectricCyan else Purple40
-                        )
-                    }
-                ) {
-                    listOf("API", "General", "Other").forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTabIndex == index,
-                            onClick = { selectedTabIndex = index },
-                            text = {
-                                Text(
-                                    title,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontSize = 16.sp,
-                                        color = if (selectedTabIndex == index) {
-                                            if (darkModeEnabled) ElectricCyan else Purple40
-                                        } else {
-                                            if (darkModeEnabled) PureWhite.copy(alpha = 0.7f) else SlateBlack.copy(alpha = 0.7f)
-                                        }
-                                    )
+            )
+            TabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+                contentColor = if (darkModeEnabled) ElectricCyan else Purple40,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier
+                            .tabIndicatorOffset(tabPositions[selectedTabIndex])
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        color = if (darkModeEnabled) ElectricCyan else Purple40
+                    )
+                }
+            ) {
+                listOf("API", "General", "Other").forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = {
+                            Text(
+                                title,
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontSize = 18.sp,
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.SemiBold else FontWeight.Normal,
+                                    color = if (selectedTabIndex == index) {
+                                        if (darkModeEnabled) ElectricCyan else Purple40
+                                    } else {
+                                        if (darkModeEnabled) PureWhite.copy(alpha = 0.7f) else SlateBlack.copy(alpha = 0.7f)
+                                    }
                                 )
-                            }
-                        )
-                    }
-                }
-                when (selectedTabIndex) {
-                    0 -> ApiSettingsTab(
-                        selectedProvider = selectedProvider,
-                        openRouterApiKey = openRouterApiKey,
-                        openRouterModel = openRouterModel,
-                        huggingFaceApiKey = huggingFaceApiKey,
-                        huggingFaceServerUrl = apiEndpoint,
-                        huggingFaceModel = huggingFaceModel,
-                        showAdvancedSettings = showAdvancedSettings,
-                        cachingEnabled = cachingEnabled,
-                        showOpenRouterApiKey = showOpenRouterApiKey,
-                        showHuggingFaceApiKey = showHuggingFaceApiKey,
-                        onSelectedProviderChange = { viewModel.updateSelectedProvider(it) },
-                        onOpenRouterApiKeyChange = { viewModel.updateOpenRouterApiKey(it) },
-                        onOpenRouterModelChange = { viewModel.updateOpenRouterModel(it) },
-                        onHuggingFaceApiKeyChange = { viewModel.updateHuggingFaceApiKey(it) },
-                        onHuggingFaceServerUrlChange = { viewModel.updateApiEndpoint(it) },
-                        onHuggingFaceModelChange = { viewModel.updateSelectedModel(it) },
-                        onAdvancedSettingsToggle = { showAdvancedSettings = !showAdvancedSettings },
-                        onCachingToggle = { viewModel.updateCachingEnabled(it) },
-                        onOpenRouterApiKeyVisibilityToggle = { showOpenRouterApiKey = !showOpenRouterApiKey },
-                        onHuggingFaceApiKeyVisibilityToggle = { showHuggingFaceApiKey = !showHuggingFaceApiKey },
-                        modifier = Modifier.weight(1f)
-                    )
-                    1 -> GeneralSettingsTab(
-                        darkModeEnabled = darkModeEnabled,
-                        notificationsEnabled = notificationsEnabled,
-                        historyRetentionDays = historyRetentionDays,
-                        systemPrompt = systemPrompt,
-                        onDarkModeToggle = { viewModel.updateDarkMode(it) },
-                        onNotificationsToggle = { viewModel.updateNotificationsEnabled(!notificationsEnabled) },
-                        onRetentionChange = { viewModel.updateHistoryRetentionDays(it) },
-                        onSystemPromptChange = { viewModel.updateSystemPrompt(it) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    2 -> OtherSettingsTab(
-                        soundEffectsEnabled = soundEffectsEnabled,
-                        analyticsEnabled = analyticsEnabled,
-                        selectedTheme = selectedTheme,
-                        onSoundEffectsToggle = { viewModel.updateSoundEffectsEnabled(it) },
-                        onAnalyticsToggle = { viewModel.updateAnalyticsEnabled(it) },
-                        onThemeChange = { viewModel.updateTheme(it) },
-                        modifier = Modifier.weight(1f)
+                            )
+                        }
                     )
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = {
-                            if (selectedProvider == "huggingface" && (huggingFaceApiKey.isBlank() || apiEndpoint.isBlank() || huggingFaceModel.isBlank())) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Please fill in all required HuggingFace fields")
-                                }
-                            } else if (selectedProvider == "openrouter" && (openRouterApiKey.isBlank() || openRouterModel.isBlank())) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Please fill in all required OpenRouter fields")
-                                }
-                            } else if (systemPrompt.isBlank()) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("System prompt is required")
-                                }
-                            } else {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Settings saved")
-                                    onDismiss()
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (darkModeEnabled) ElectricCyan else Purple40
-                        )
-                    ) {
-                        Text("Save")
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (darkModeEnabled) PureWhite else SlateBlack
-                        )
-                    ) {
-                        Text("Cancel")
-                    }
-                }
+            }
+            when (selectedTabIndex) {
+                0 -> ApiSettingsTab(
+                    selectedProvider = selectedProvider,
+                    openRouterApiKey = openRouterApiKey,
+                    openRouterModel = openRouterModel,
+                    huggingFaceApiKey = huggingFaceApiKey,
+                    huggingFaceServerUrl = apiEndpoint,
+                    huggingFaceModel = huggingFaceModel,
+                    showAdvancedSettings = showAdvancedSettings,
+                    cachingEnabled = cachingEnabled,
+                    showOpenRouterApiKey = showOpenRouterApiKey,
+                    showHuggingFaceApiKey = showHuggingFaceApiKey,
+                    onSelectedProviderChange = { viewModel.updateSelectedProvider(it) },
+                    onOpenRouterApiKeyChange = { viewModel.updateOpenRouterApiKey(it) },
+                    onOpenRouterModelChange = { viewModel.updateOpenRouterModel(it) },
+                    onHuggingFaceApiKeyChange = { viewModel.updateHuggingFaceApiKey(it) },
+                    onHuggingFaceServerUrlChange = { viewModel.updateApiEndpoint(it) },
+                    onHuggingFaceModelChange = { viewModel.updateSelectedModel(it) },
+                    onAdvancedSettingsToggle = { showAdvancedSettings = !showAdvancedSettings },
+                    onCachingToggle = { viewModel.updateCachingEnabled(it) },
+                    onOpenRouterApiKeyVisibilityToggle = { showOpenRouterApiKey = !showOpenRouterApiKey },
+                    onHuggingFaceApiKeyVisibilityToggle = { showHuggingFaceApiKey = !showHuggingFaceApiKey },
+                    modifier = Modifier.weight(1f)
+                )
+                1 -> GeneralSettingsTab(
+                    notificationsEnabled = notificationsEnabled,
+                    historyRetentionDays = historyRetentionDays,
+                    systemPrompt = systemPrompt,
+                    onNotificationsToggle = { viewModel.updateNotificationsEnabled(!notificationsEnabled) },
+                    onRetentionChange = { viewModel.updateHistoryRetentionDays(it) },
+                    onSystemPromptChange = { viewModel.updateSystemPrompt(it) },
+                    modifier = Modifier.weight(1f)
+                )
+                2 -> OtherSettingsTab(
+                    soundEffectsEnabled = soundEffectsEnabled,
+                    analyticsEnabled = analyticsEnabled,
+                    selectedTheme = selectedTheme,
+                    darkModeSetting = darkModeSetting,
+                    onSoundEffectsToggle = { viewModel.updateSoundEffectsEnabled(it) },
+                    onAnalyticsToggle = { viewModel.updateAnalyticsEnabled(it) },
+                    onThemeChange = { viewModel.updateTheme(it) },
+                    onDarkModeChange = { viewModel.updateDarkModeSetting(it) },
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }

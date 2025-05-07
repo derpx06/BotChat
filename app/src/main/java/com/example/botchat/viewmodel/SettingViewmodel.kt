@@ -1,17 +1,20 @@
 package com.example.botchat.viewmodel
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.botchat.data.UserSettingsDataStore
 import kotlinx.coroutines.launch
 
 class SettingViewModel(
     private val settingsDataStore: UserSettingsDataStore
 ) : ViewModel() {
-    val darkModeEnabled = settingsDataStore.getDarkMode
+    val darkModeSetting = settingsDataStore.getDarkModeSetting
     val notificationsEnabled = settingsDataStore.getNotificationsEnabled
     val cachingEnabled = settingsDataStore.getCachingEnabled
     val analyticsEnabled = settingsDataStore.getAnalyticsEnabled
@@ -27,9 +30,19 @@ class SettingViewModel(
     val theme = settingsDataStore.getTheme
     var showSettings by mutableStateOf(false)
 
-    fun updateDarkMode(enabled: Boolean) {
+    @Composable
+    fun getDarkModeEnabled(): Boolean {
+        val darkModeSetting by darkModeSetting.collectAsStateWithLifecycle(initialValue = "system")
+        return when (darkModeSetting) {
+            "dark" -> true
+            "light" -> false
+            else -> isSystemInDarkTheme()
+        }
+    }
+
+    fun updateDarkModeSetting(setting: String) {
         viewModelScope.launch {
-            settingsDataStore.updateDarkMode(enabled)
+            settingsDataStore.updateDarkModeSetting(setting)
         }
     }
 

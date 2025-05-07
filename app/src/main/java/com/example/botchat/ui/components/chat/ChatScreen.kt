@@ -34,7 +34,7 @@ fun ChatScreen(
     )
 ) {
     val uiState by chatViewModel.uiState.collectAsStateWithLifecycle()
-    val isDarkTheme by settingViewModel.darkModeEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val isDarkTheme = settingViewModel.getDarkModeEnabled()
     val selectedTheme by settingViewModel.theme.collectAsStateWithLifecycle(initialValue = "gradient")
     val showSettings = settingViewModel.showSettings
 

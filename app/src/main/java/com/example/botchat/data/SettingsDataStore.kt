@@ -12,7 +12,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 data class UserSettingsDataStore(private val context: Context) {
 
     companion object {
-        private val DARK_MODE = booleanPreferencesKey("dark_mode")
+        private val DARK_MODE_SETTING = stringPreferencesKey("dark_mode_setting")
         private val HUGGINGFACE_API_KEY = stringPreferencesKey("api_key")
         private val SELECTED_MODEL = stringPreferencesKey("selected_model")
         private val API_ENDPOINT = stringPreferencesKey("api_endpoint")
@@ -28,8 +28,8 @@ data class UserSettingsDataStore(private val context: Context) {
         private val THEME = stringPreferencesKey("theme")
     }
 
-    val getDarkMode: Flow<Boolean> = context.dataStore.data
-        .map { preferences -> preferences[DARK_MODE] ?: false }
+    val getDarkModeSetting: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[DARK_MODE_SETTING] ?: "system" }
 
     val getHUGGINGFACE_API: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[HUGGINGFACE_API_KEY] ?: "" }
@@ -70,8 +70,8 @@ data class UserSettingsDataStore(private val context: Context) {
     val getTheme: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[THEME] ?: "gradient" }
 
-    suspend fun updateDarkMode(enableDarkMode: Boolean) {
-        context.dataStore.edit { preferences -> preferences[DARK_MODE] = enableDarkMode }
+    suspend fun updateDarkModeSetting(setting: String) {
+        context.dataStore.edit { preferences -> preferences[DARK_MODE_SETTING] = setting }
     }
 
     suspend fun updateOpenRouterApiKey(apiKey: String) {
