@@ -35,6 +35,7 @@ fun ChatScreen(
 ) {
     val uiState by chatViewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme by settingViewModel.darkModeEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val selectedTheme by settingViewModel.theme.collectAsStateWithLifecycle(initialValue = "gradient")
     val showSettings = settingViewModel.showSettings
 
     Box(
@@ -55,6 +56,7 @@ fun ChatScreen(
             ChatMessages(
                 messages = uiState.messages,
                 isLoading = uiState.isLoading,
+                theme = selectedTheme,
                 modifier = Modifier.weight(1f),
                 isDarkTheme = isDarkTheme
             )
@@ -70,7 +72,7 @@ fun ChatScreen(
                 onClick = { chatViewModel.clearMessages() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isDarkTheme) ElectricCyan else Purple40,
                     contentColor = if (isDarkTheme) MidnightBlack else PureWhite

@@ -14,10 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.botchat.ui.theme.*
 import com.example.botchat.viewmodel.SettingViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,59 +25,20 @@ fun SettingsSheetBottom(
     viewModel: SettingViewModel,
     onDismiss: () -> Unit
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val darkModeEnabled by viewModel.darkModeEnabled.collectAsStateWithLifecycle(
-        initialValue = false,
-        lifecycleOwner = lifecycleOwner
-    )
-    val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle(
-        initialValue = true,
-        lifecycleOwner = lifecycleOwner
-    )
-    val cachingEnabled by viewModel.cachingEnabled.collectAsStateWithLifecycle(
-        initialValue = true,
-        lifecycleOwner = lifecycleOwner
-    )
-    val analyticsEnabled by viewModel.analyticsEnabled.collectAsStateWithLifecycle(
-        initialValue = false,
-        lifecycleOwner = lifecycleOwner
-    )
-    val openRouterApiKey by viewModel.openRouterApiKey.collectAsStateWithLifecycle(
-        initialValue = "",
-        lifecycleOwner = lifecycleOwner
-    )
-    val openRouterModel by viewModel.openRouterModel.collectAsStateWithLifecycle(
-        initialValue = "google/gemma-3-12b-it:free",
-        lifecycleOwner = lifecycleOwner
-    )
-    val huggingFaceApiKey by viewModel.huggingFaceApiKey.collectAsStateWithLifecycle(
-        initialValue = "",
-        lifecycleOwner = lifecycleOwner
-    )
-    val huggingFaceModel by viewModel.selectedModel.collectAsStateWithLifecycle(
-        initialValue = "facebook/blenderbot-400M-distill",
-        lifecycleOwner = lifecycleOwner
-    )
-    val apiEndpoint by viewModel.apiEndpoint.collectAsStateWithLifecycle(
-        initialValue = "https://api-inference.huggingface.co",
-        lifecycleOwner = lifecycleOwner
-    )
-    val historyRetentionDays by viewModel.historyRetentionDays.collectAsStateWithLifecycle(
-        initialValue = 7,
-        lifecycleOwner = lifecycleOwner
-    )
-    val soundEffectsEnabled by viewModel.soundEffectsEnabled.collectAsStateWithLifecycle(
-        initialValue = false,
-        lifecycleOwner = lifecycleOwner
-    )
-    val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle(
-        initialValue = "openrouter",
-        lifecycleOwner = lifecycleOwner
-    )
-    val systemPrompt by viewModel.systemPrompt.collectAsStateWithLifecycle(
-        initialValue = "You are a helpful assistant.",
-        lifecycleOwner = lifecycleOwner
-    )
+    val darkModeEnabled by viewModel.darkModeEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle(initialValue = true)
+    val cachingEnabled by viewModel.cachingEnabled.collectAsStateWithLifecycle(initialValue = true)
+    val analyticsEnabled by viewModel.analyticsEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val openRouterApiKey by viewModel.openRouterApiKey.collectAsStateWithLifecycle(initialValue = "")
+    val openRouterModel by viewModel.openRouterModel.collectAsStateWithLifecycle(initialValue = "google/gemma-3-12b-it:free")
+    val huggingFaceApiKey by viewModel.huggingFaceApiKey.collectAsStateWithLifecycle(initialValue = "")
+    val huggingFaceModel by viewModel.selectedModel.collectAsStateWithLifecycle(initialValue = "facebook/blenderbot-400M-distill")
+    val apiEndpoint by viewModel.apiEndpoint.collectAsStateWithLifecycle(initialValue = "https://api-inference.huggingface.co")
+    val historyRetentionDays by viewModel.historyRetentionDays.collectAsStateWithLifecycle(initialValue = 7)
+    val soundEffectsEnabled by viewModel.soundEffectsEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle(initialValue = "openrouter")
+    val systemPrompt by viewModel.systemPrompt.collectAsStateWithLifecycle(initialValue = "You are a helpful assistant.")
+    val selectedTheme by viewModel.theme.collectAsStateWithLifecycle(initialValue = "gradient")
 
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
     var showAdvancedSettings by remember { mutableStateOf(false) }
@@ -90,7 +50,7 @@ fun SettingsSheetBottom(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(),
-        containerColor = if (darkModeEnabled) StarlitPurple else MistGray,
+        containerColor = if (darkModeEnabled) MidnightBlack else CloudWhite,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     ) {
         Scaffold(
@@ -185,8 +145,10 @@ fun SettingsSheetBottom(
                     2 -> OtherSettingsTab(
                         soundEffectsEnabled = soundEffectsEnabled,
                         analyticsEnabled = analyticsEnabled,
+                        selectedTheme = selectedTheme,
                         onSoundEffectsToggle = { viewModel.updateSoundEffectsEnabled(it) },
                         onAnalyticsToggle = { viewModel.updateAnalyticsEnabled(it) },
+                        onThemeChange = { viewModel.updateTheme(it) },
                         modifier = Modifier.weight(1f)
                     )
                 }

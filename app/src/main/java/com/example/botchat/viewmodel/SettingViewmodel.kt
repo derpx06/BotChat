@@ -24,6 +24,7 @@ class SettingViewModel(
     val soundEffectsEnabled = settingsDataStore.getSoundEffectsEnabled
     val selectedProvider = settingsDataStore.getSelectedProvider
     val systemPrompt = settingsDataStore.getSystemPrompt
+    val theme = settingsDataStore.getTheme
     var showSettings by mutableStateOf(false)
 
     fun updateDarkMode(enabled: Boolean) {
@@ -104,7 +105,13 @@ class SettingViewModel(
         }
     }
 
+    fun updateTheme(theme: String) {
+        viewModelScope.launch {
+            settingsDataStore.updateTheme(theme)
+        }
+    }
+
     fun toggleSettings() {
-       showSettings=!showSettings
+        showSettings = !showSettings
     }
 }

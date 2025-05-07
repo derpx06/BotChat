@@ -2,11 +2,7 @@ package com.example.botchat.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -29,6 +25,7 @@ data class UserSettingsDataStore(private val context: Context) {
         private val OPENROUTER_MODEL = stringPreferencesKey("openrouter_model")
         private val SOUND_EFFECTS_ENABLED = booleanPreferencesKey("sound_effects_enabled")
         private val SELECTED_PROVIDER = stringPreferencesKey("selected_provider")
+        private val THEME = stringPreferencesKey("theme")
     }
 
     val getDarkMode: Flow<Boolean> = context.dataStore.data
@@ -69,6 +66,9 @@ data class UserSettingsDataStore(private val context: Context) {
 
     val getSelectedProvider: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[SELECTED_PROVIDER] ?: "openrouter" }
+
+    val getTheme: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[THEME] ?: "gradient" }
 
     suspend fun updateDarkMode(enableDarkMode: Boolean) {
         context.dataStore.edit { preferences -> preferences[DARK_MODE] = enableDarkMode }
@@ -120,5 +120,9 @@ data class UserSettingsDataStore(private val context: Context) {
 
     suspend fun updateSelectedProvider(provider: String) {
         context.dataStore.edit { preferences -> preferences[SELECTED_PROVIDER] = provider }
+    }
+
+    suspend fun updateTheme(theme: String) {
+        context.dataStore.edit { preferences -> preferences[THEME] = theme }
     }
 }

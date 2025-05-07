@@ -1,7 +1,7 @@
 package com.example.botchat.ui.components.chat
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -14,10 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +27,7 @@ import kotlinx.coroutines.launch
 fun ChatMessages(
     messages: List<ChatMessage>,
     isLoading: Boolean,
+    theme: String,
     modifier: Modifier = Modifier,
     isDarkTheme: Boolean
 ) {
@@ -49,33 +46,33 @@ fun ChatMessages(
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-            .shadow(
-                elevation = 3.dp,
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                ambientColor = if (isDarkTheme) ElectricCyan.copy(alpha = 0.3f) else Purple40.copy(alpha = 0.3f)
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+            .then(
+                when (theme) {
+                    "gradient", "mixed" -> Modifier.background(
+                        brush = if (isDarkTheme) ChatInterfaceGradientDark else ChatInterfaceGradientLight,
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                        alpha = 1.0f
+                    )
+                    else -> Modifier.background(
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDarkTheme) 0.15f else 0.5f),
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    )
+                }
             )
-            .background(if (isDarkTheme) ChatInterfaceGradientDark else ChatInterfaceGradientLight)
             .border(
                 width = 1.dp,
-                brush = if (isDarkTheme) Brush.linearGradient(
-                    listOf(ElectricCyan.copy(alpha = 0.3f), Transparent)
-                ) else Brush.linearGradient(
-                    listOf(Purple40.copy(alpha = 0.2f), Transparent)
-                ),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             )
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(6.dp),
+            modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { message ->
-                ChatMessageItem(message = message, isDarkTheme = isDarkTheme)
+                ChatMessageItem(message = message, isDarkTheme = isDarkTheme, theme = theme)
             }
             item {
                 AnimatedVisibility(
@@ -91,71 +88,61 @@ fun ChatMessages(
 }
 
 @Composable
-private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean) {
+private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: String) {
     val isUserMessage = message.isUser
     val alignment = if (isUserMessage) Alignment.End else Alignment.Start
-    val bubbleGradient = if (isUserMessage) {
-        if (isDarkTheme) ChatBubbleGradientDark else ChatBubbleGradientLight
-    } else {
-        if (isDarkTheme) InputFieldGradientDark else InputFieldGradientLight
-    }
     val bubbleShape = if (isUserMessage) {
-        RoundedCornerShape(topStart = 20.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
+        RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
     } else {
-        RoundedCornerShape(topStart = 4.dp, topEnd = 20.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
+        RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
     }
-    val infiniteTransition = rememberInfiniteTransition(label = "Glow")
-    val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.1f,
-        targetValue = 0.3f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "GlowAlpha"
-    )
 
     AnimatedVisibility(
         visible = true,
-        enter = fadeIn(animationSpec = tween(400)),
-        exit = fadeOut(animationSpec = tween(400))
+        enter = fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.95f),
+        exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.95f)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    start = if (isUserMessage) 48.dp else 12.dp,
-                    end = if (isUserMessage) 12.dp else 12.dp
+                    start = if (isUserMessage) 48.dp else 8.dp,
+                    end = if (isUserMessage) 8.dp else 8.dp
                 )
                 .wrapContentWidth(alignment)
         ) {
             Box(
                 modifier = Modifier
                     .clip(bubbleShape)
-                    .background(bubbleGradient)
+                    .then(
+                        when {
+                            isUserMessage && theme != "plain" -> Modifier.background(
+                                brush = if (isDarkTheme) ChatBubbleGradientDark else ChatBubbleGradientLight,
+                                shape = bubbleShape,
+                                alpha = 1.0f
+                            )
+                            !isUserMessage && theme != "plain" -> Modifier.background(
+                                brush = if (isDarkTheme) InputFieldGradientDark else InputFieldGradientLight,
+                                shape = bubbleShape,
+                                alpha = 1.0f
+                            )
+                            isUserMessage && theme == "plain" -> Modifier.background(
+                                color = if (isDarkTheme) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Purple40.copy(alpha = 0.2f),
+                                shape = bubbleShape
+                            )
+                            else -> Modifier.background(
+                                color = if (isDarkTheme) MaterialTheme.colorScheme.surface.copy(alpha = 0.3f) else MistGray.copy(alpha = 0.3f),
+                                shape = bubbleShape
+                            )
+                        }
+                    )
                     .border(
                         width = 1.dp,
-                        brush = if (isDarkTheme) Brush.linearGradient(
-                            listOf(ElectricCyan.copy(alpha = glowAlpha), Transparent)
-                        ) else Brush.linearGradient(
-                            listOf(Purple40.copy(alpha = glowAlpha), Transparent)
-                        ),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                         shape = bubbleShape
                     )
-                    .drawWithContent {
-                        drawContent()
-                        drawRect(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    PureWhite.copy(alpha = 0.1f),
-                                    Transparent
-                                )
-                            ),
-                            alpha = 0.3f
-                        )
-                    }
                     .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .widthIn(max = 300.dp) // Ensure it fits small screens
+                    .widthIn(max = 300.dp)
             ) {
                 val annotatedText = if (!isUserMessage) {
                     parseResponse(message.content)
@@ -168,7 +155,7 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean) {
                         fontSize = 15.sp,
                         color = if (isDarkTheme) PureWhite else SlateBlack
                     ),
-                    modifier = Modifier.fillMaxWidth() // Text wraps within max width
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -186,7 +173,7 @@ fun parseResponse(text: String): AnnotatedString {
             builder.addStyle(
                 SpanStyle(
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp // Slightly larger than normal text
+                    fontSize = 18.sp
                 ),
                 currentIndex,
                 currentIndex + titleText.length
@@ -198,7 +185,7 @@ fun parseResponse(text: String): AnnotatedString {
             builder.addStyle(
                 SpanStyle(
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp // Just above normal text
+                    fontSize = 16.sp
                 ),
                 currentIndex,
                 currentIndex + subtitleText.length
@@ -212,15 +199,14 @@ fun parseResponse(text: String): AnnotatedString {
     }
     return builder.toAnnotatedString()
 }
-
 @Composable
-private fun ThinkingIndicator(isDarkTheme: Boolean) {
+fun ThinkingIndicator(isDarkTheme: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentWidth(Alignment.Start)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (isDarkTheme) InputFieldGradientDark else InputFieldGradientLight)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
