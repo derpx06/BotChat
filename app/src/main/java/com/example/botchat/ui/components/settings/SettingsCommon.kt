@@ -37,7 +37,11 @@ fun SettingsSwitchItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
-            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                RoundedCornerShape(16.dp)
+            )
             .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         Text(
@@ -77,7 +81,11 @@ fun ApiKeyInput(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
-            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                RoundedCornerShape(16.dp)
+            )
             .padding(16.dp)
     ) {
         OutlinedTextField(
@@ -155,7 +163,11 @@ fun ModelSelectionInput(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
-            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                RoundedCornerShape(16.dp)
+            )
             .padding(16.dp)
     ) {
         OutlinedTextField(
@@ -222,7 +234,11 @@ fun ModelSelectionInput(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surface)
                 .clip(RoundedCornerShape(16.dp))
-                .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    RoundedCornerShape(16.dp)
+                )
                 .width(IntrinsicSize.Max)
                 .heightIn(max = 300.dp)
         ) {
@@ -252,7 +268,9 @@ fun ModelSelectionInput(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (model == selectedModel) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                if (model == selectedModel) MaterialTheme.colorScheme.primary.copy(
+                                    alpha = 0.15f
+                                )
                                 else Transparent
                             )
                     )
@@ -261,3 +279,4 @@ fun ModelSelectionInput(
         }
     }
 }
+

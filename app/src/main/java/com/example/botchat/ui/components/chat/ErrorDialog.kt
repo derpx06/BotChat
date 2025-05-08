@@ -13,17 +13,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.botchat.ui.theme.*
+
 @Composable
 fun ErrorDialog(
     errorMessage: String,
     isDarkTheme: Boolean,
-    onDismiss: () -> Unit={},
-    onRetry: (() -> Unit)? =null
+    onDismiss: () -> Unit,
+    onRetry: (() -> Unit)? = null
 ) {
     Dialog(onDismissRequest = onDismiss) {
         AnimatedVisibility(
@@ -52,14 +52,14 @@ fun ErrorDialog(
                         text = "Error",
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontSize = 22.sp,
-                            color = if (isDarkTheme) PureWhite else SlateBlack
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     Text(
                         text = errorMessage,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontSize = 14.sp,
-                            color = if (isDarkTheme) PureWhite.copy(alpha = 0.9f) else SlateBlack.copy(alpha = 0.9f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -91,7 +91,7 @@ fun ErrorDialog(
                                 }
                             ),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = if (isDarkTheme) PureWhite else SlateBlack
+                                contentColor = MaterialTheme.colorScheme.onSurface
                             )
                         ) {
                             Text("Dismiss")

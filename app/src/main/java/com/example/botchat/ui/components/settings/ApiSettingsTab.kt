@@ -54,7 +54,7 @@ fun ApiSettingsTab(
         Text(
             text = "API Configuration",
             style = MaterialTheme.typography.headlineSmall.copy(
-                color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Medium
             ),
@@ -76,13 +76,13 @@ fun ApiSettingsTab(
             TabRow(
                 selectedTabIndex = selectedSubTabIndex,
                 containerColor = Transparent,
-                contentColor = if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                contentColor = MaterialTheme.colorScheme.primary,
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
                         modifier = Modifier
                             .tabIndicatorOffset(tabPositions[selectedSubTabIndex])
                             .clip(RoundedCornerShape(50)),
-                        color = if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                        color = MaterialTheme.colorScheme.primary,
                         height = 4.dp
                     )
                 }
@@ -98,9 +98,9 @@ fun ApiSettingsTab(
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = if (selectedSubTabIndex == index) {
-                                        if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40
+                                        MaterialTheme.colorScheme.primary
                                     } else {
-                                        if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite.copy(alpha = 0.7f) else SlateBlack.copy(alpha = 0.7f)
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                     }
                                 )
                             )

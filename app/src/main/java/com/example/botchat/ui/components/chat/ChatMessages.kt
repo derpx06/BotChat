@@ -55,7 +55,7 @@ fun ChatMessages(
                         alpha = 1.0f
                     )
                     else -> Modifier.background(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = if (isDarkTheme) 0.15f else 0.5f),
+                        color = if (isDarkTheme) MidnightBlack else CloudWhite,
                         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                     )
                 }
@@ -106,8 +106,8 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    start = if (isUserMessage) 48.dp else 8.dp,
-                    end = if (isUserMessage) 8.dp else 8.dp
+                    start = if (isUserMessage) 4.dp else 8.dp,
+                    end = if (isUserMessage) 8.dp else 48.dp
                 )
                 .wrapContentWidth(alignment)
         ) {
@@ -127,11 +127,11 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
                                 alpha = 1.0f
                             )
                             isUserMessage && theme == "plain" -> Modifier.background(
-                                color = if (isDarkTheme) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Purple40.copy(alpha = 0.2f),
+                                color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.8f) else CloudWhite.copy(alpha = 0.8f),
                                 shape = bubbleShape
                             )
                             else -> Modifier.background(
-                                color = if (isDarkTheme) MaterialTheme.colorScheme.surface.copy(alpha = 0.3f) else MistGray.copy(alpha = 0.3f),
+                                color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.6f) else CloudWhite.copy(alpha = 0.6f),
                                 shape = bubbleShape
                             )
                         }
@@ -141,8 +141,11 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                         shape = bubbleShape
                     )
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .widthIn(max = 300.dp)
+                    .padding(
+                        horizontal = if (isUserMessage) 8.dp else 12.dp,
+                        vertical = if (isUserMessage) 6.dp else 8.dp
+                    )
+                    .widthIn(max = if (isUserMessage) 200.dp else 300.dp)
             ) {
                 val annotatedText = if (!isUserMessage) {
                     parseResponse(message.content)
@@ -152,8 +155,8 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
                 Text(
                     text = annotatedText,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 15.sp,
-                        color = if (isDarkTheme) PureWhite else SlateBlack
+                        fontSize = if (isUserMessage) 14.sp else 15.sp,
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -199,6 +202,7 @@ fun parseResponse(text: String): AnnotatedString {
     }
     return builder.toAnnotatedString()
 }
+
 @Composable
 fun ThinkingIndicator(isDarkTheme: Boolean) {
     Row(
@@ -220,7 +224,7 @@ fun ThinkingIndicator(isDarkTheme: Boolean) {
             text = "AI is thinking...",
             style = MaterialTheme.typography.bodySmall.copy(
                 fontSize = 13.sp,
-                color = if (isDarkTheme) PureWhite else SlateBlack
+                color = MaterialTheme.colorScheme.onSurface
             )
         )
     }

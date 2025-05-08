@@ -6,11 +6,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.botchat.R
 import com.example.botchat.Repository.ChatRepository
 import com.example.botchat.data.UserSettingsDataStore
 import com.example.botchat.database.ChatDatabase
@@ -60,25 +63,31 @@ fun ChatScreen(
                 modifier = Modifier.weight(1f),
                 isDarkTheme = isDarkTheme
             )
-            ChatInputSection(
-                inputText = uiState.inputText,
-                onInputChange = chatViewModel::updateInputText,
-                onSendClick = chatViewModel::sendMessage,
-                onStopClick = chatViewModel::cancelProcessing,
-                isLoading = uiState.isLoading,
-                isDarkTheme = isDarkTheme
-            )
-            Button(
-                onClick = { chatViewModel.clearMessages() },
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isDarkTheme) ElectricCyan else Purple40,
-                    contentColor = if (isDarkTheme) MidnightBlack else PureWhite
-                )
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Clear Chat")
+                ChatInputSection(
+                    inputText = uiState.inputText,
+                    onInputChange = chatViewModel::updateInputText,
+                    onSendClick = chatViewModel::sendMessage,
+                    onStopClick = chatViewModel::cancelProcessing,
+                    isLoading = uiState.isLoading,
+                    isDarkTheme = isDarkTheme,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(
+                    onClick = { chatViewModel.clearMessages() },
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_clear),
+                        contentDescription = "Clear Chat",
+                        tint = if (isDarkTheme) ElectricCyan else Purple40
+                    )
+                }
             }
         }
 

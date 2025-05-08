@@ -39,7 +39,7 @@ fun GeneralSettingsTab(
         Text(
             text = "General Settings",
             style = MaterialTheme.typography.headlineSmall.copy(
-                color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Medium
             ),
@@ -109,4 +109,3 @@ fun SystemPromptInput(
         )
     }
 }
-

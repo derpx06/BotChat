@@ -33,7 +33,7 @@ fun HuggingFaceSettingsSubTab(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()) // Enable vertical scrolling
+            .verticalScroll(rememberScrollState())
             .padding(8.dp)
             .animateContentSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -41,7 +41,7 @@ fun HuggingFaceSettingsSubTab(
         Text(
             text = "HuggingFace Configuration",
             style = MaterialTheme.typography.titleLarge.copy(
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 18.sp
             )
         )

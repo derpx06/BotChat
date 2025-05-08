@@ -85,7 +85,7 @@ fun TopBar(
                     )
                 },
             shape = topBarShape,
-            color = if (isDarkTheme) StarlitPurple.copy(alpha = 0.9f) else MistGray.copy(alpha = 0.9f)
+            color = if (isDarkTheme) MidnightBlack else CloudWhite
         ) {
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -99,7 +99,7 @@ fun TopBar(
                     Text(
                         text = "AI Assistant",
                         style = MaterialTheme.typography.titleMedium.copy(
-                            color = if (isDarkTheme) PureWhite else SlateBlack,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 18.sp
                         )
