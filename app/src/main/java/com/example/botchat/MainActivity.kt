@@ -3,8 +3,14 @@ package com.example.botchat
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.botchat.data.UserSettingsDataStore
+import com.example.botchat.ui.components.ModelScreen
 import com.example.botchat.ui.components.chat.ChatScreen
 import com.example.botchat.ui.theme.BotChatTheme
 import com.example.botchat.viewmodel.setting.SettingViewModel
@@ -19,9 +25,32 @@ class MainActivity : ComponentActivity() {
             )
             val isDarkTheme = settingViewModel.getDarkModeEnabled()
             BotChatTheme(darkTheme = isDarkTheme) {
-                ChatScreen(
-                    settingViewModel = settingViewModel)
+                AppNavigation(settingViewModel)
             }
         }
+    }
+}
+
+@Composable
+fun AppNavigation(settingViewModel: SettingViewModel) {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "chat") {
+        composable("chat") {
+            ChatScreen(
+                settingViewModel = settingViewModel,
+                onNavigateToModels = { navController.navigate("models") }
+            )
+        }
+        composable("models") {
+            ModelScreen(settingViewModel = settingViewModel)
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    BotChatTheme {
+        AppNavigation(settingViewModel = viewModel())
     }
 }

@@ -124,6 +124,7 @@ class SettingViewModel(
         }
     }
 
+
     fun toggleSettings() {
         showSettings = !showSettings
     }

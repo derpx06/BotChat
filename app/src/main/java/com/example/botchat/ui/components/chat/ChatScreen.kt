@@ -17,6 +17,7 @@ import com.example.botchat.R
 import com.example.botchat.Repository.ChatRepository
 import com.example.botchat.data.UserSettingsDataStore
 import com.example.botchat.database.ChatDatabase
+import com.example.botchat.ui.components.TopBar
 import com.example.botchat.ui.components.settings.SettingsSheetBottom
 import com.example.botchat.ui.theme.*
 import com.example.botchat.viewmodel.Chat.ChatViewModel
@@ -34,7 +35,8 @@ fun ChatScreen(
     ),
     settingViewModel: SettingViewModel = viewModel(
         factory = SettingViewModelFactory(UserSettingsDataStore(LocalContext.current))
-    )
+    ),
+    onNavigateToModels: () -> Unit = {}
 ) {
     val uiState by chatViewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = settingViewModel.getDarkModeEnabled()
@@ -54,6 +56,7 @@ fun ChatScreen(
         ) {
             TopBar(
                 onSettingsClick = { settingViewModel.toggleSettings() },
+                onModelsClick = onNavigateToModels,
                 isDarkTheme = isDarkTheme
             )
             ChatMessages(
