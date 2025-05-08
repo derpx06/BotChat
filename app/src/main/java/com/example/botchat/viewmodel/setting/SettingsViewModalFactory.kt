@@ -1,4 +1,4 @@
-package com.example.botchat.viewmodel
+package com.example.botchat.viewmodel.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

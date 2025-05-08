@@ -19,10 +19,10 @@ import com.example.botchat.data.UserSettingsDataStore
 import com.example.botchat.database.ChatDatabase
 import com.example.botchat.ui.components.settings.SettingsSheetBottom
 import com.example.botchat.ui.theme.*
-import com.example.botchat.viewmodel.ChatViewModel
-import com.example.botchat.viewmodel.ChatViewModelFactory
-import com.example.botchat.viewmodel.SettingViewModel
-import com.example.botchat.viewmodel.SettingViewModelFactory
+import com.example.botchat.viewmodel.Chat.ChatViewModel
+import com.example.botchat.viewmodel.Chat.ChatViewModelFactory
+import com.example.botchat.viewmodel.setting.SettingViewModel
+import com.example.botchat.viewmodel.setting.SettingViewModelFactory
 
 @Composable
 fun ChatScreen(

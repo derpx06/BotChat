@@ -38,16 +38,3 @@ data class ErrorData(
     val type: String?
 )
 
-// Model Info (for fetching available models)
-data class OpenRouterModel(
-    val id: String,
-    val name: String,
-    val description: String?,
-    val pricing: PricingInfo,
-    val context_length: Int
-)
-
-data class PricingInfo(
-    val prompt: String, // Cost per 1k tokens
-    val completion: String
-)

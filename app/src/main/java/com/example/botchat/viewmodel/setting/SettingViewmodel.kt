@@ -1,4 +1,4 @@
-package com.example.botchat.viewmodel
+package com.example.botchat.viewmodel.setting
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

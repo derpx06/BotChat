@@ -7,8 +7,16 @@ import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
 import android.util.Log
+import com.example.botchat.data.OpenRouterModel
+import retrofit2.http.GET
+import retrofit2.http.Headers
 
 interface OpenRouterApiService {
+    @GET("/api/v1/models")
+    @Headers("HTTP-Referer: https://botchat.example.com", "X-Title: BotChat")
+    suspend fun getModels(
+        @Header("Authorization") authHeader: String
+    ): OpenRouterModelResponse
     @POST("chat/completions")
     suspend fun getChatCompletion(
         @Header("Authorization") apiKey: String,
@@ -26,3 +34,6 @@ interface OpenRouterApiService {
         }
     }
 }
+data class OpenRouterModelResponse(
+    val data: List<OpenRouterModel>
+)
