@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,12 +36,14 @@ fun SettingsSwitchItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                if (MaterialTheme.colorScheme.background == MidnightBlack) MidnightBlack else CloudWhite
+            )
             .border(
-                1.dp,
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                RoundedCornerShape(16.dp)
+                1.5.dp,
+                if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                RoundedCornerShape(24.dp)
             )
             .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
@@ -66,7 +69,6 @@ fun SettingsSwitchItem(
         )
     }
 }
-
 @Composable
 fun ApiKeyInput(
     apiKey: String,
@@ -79,12 +81,14 @@ fun ApiKeyInput(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                if (MaterialTheme.colorScheme.background == MidnightBlack) MidnightBlack else CloudWhite
+            )
             .border(
-                1.dp,
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                RoundedCornerShape(16.dp)
+                1.5.dp,
+                if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                RoundedCornerShape(24.dp)
             )
             .padding(16.dp)
     ) {
@@ -133,7 +137,7 @@ fun ApiKeyInput(
                 focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                 unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
             ),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             supportingText = if (apiKey.isBlank()) {
                 {
                     Text(
@@ -161,12 +165,19 @@ fun ModelSelectionInput(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.1f))
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(24.dp),
+                clip = true
+            )
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                if (MaterialTheme.colorScheme.background == MidnightBlack) MidnightBlack else CloudWhite
+            )
             .border(
-                1.dp,
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                RoundedCornerShape(16.dp)
+                1.5.dp,
+                if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                RoundedCornerShape(24.dp)
             )
             .padding(16.dp)
     ) {
@@ -214,7 +225,7 @@ fun ModelSelectionInput(
                 focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                 unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
             ),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             supportingText = if (selectedModel.isBlank()) {
                 {
                     Text(
@@ -232,12 +243,19 @@ fun ModelSelectionInput(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
-                .clip(RoundedCornerShape(16.dp))
+                .shadow(
+                    elevation = 4.dp,
+                    shape = RoundedCornerShape(20.dp),
+                    clip = true
+                )
+                .background(
+                    if (MaterialTheme.colorScheme.background == MidnightBlack) MidnightBlack else CloudWhite
+                )
+                .clip(RoundedCornerShape(20.dp))
                 .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    RoundedCornerShape(16.dp)
+                    1.5.dp,
+                    if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                    RoundedCornerShape(20.dp)
                 )
                 .width(IntrinsicSize.Max)
                 .heightIn(max = 300.dp)
@@ -266,7 +284,7 @@ fun ModelSelectionInput(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(20.dp))
                             .background(
                                 if (model == selectedModel) MaterialTheme.colorScheme.primary.copy(
                                     alpha = 0.15f
@@ -279,4 +297,3 @@ fun ModelSelectionInput(
         }
     }
 }
-

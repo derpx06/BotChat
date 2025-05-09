@@ -3,6 +3,7 @@ package com.example.botchat.ui.components.settings
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -49,13 +50,20 @@ fun SettingsSheetBottom(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(),
-        containerColor = Color.Transparent,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        tonalElevation = BottomSheetDefaults.Elevation
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+        shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
+        tonalElevation = 12.dp,
+        modifier = Modifier
+            .border(
+                width = 1.dp,
+                color = if (darkModeEnabled) ElectricCyan.copy(alpha = 0.4f) else Purple40.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp)
+            )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp))
                 .then(
                     if (selectedTheme == "plain") {
                         Modifier.background(if (darkModeEnabled) MidnightBlack else CloudWhite)
