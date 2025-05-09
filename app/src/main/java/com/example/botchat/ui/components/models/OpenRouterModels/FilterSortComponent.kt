@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -27,12 +28,12 @@ enum class SortOption(val label: String) {
     CONTEXT_LENGTH("Context Length"),
     BILLION_PARAMETERS("Billion Parameters")
 }
-
+@Preview
 @Composable
 fun SearchBar(
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
-    onClear: () -> Unit
+    searchQuery: String="",
+    onSearchQueryChange: (String) -> Unit={},
+    onClear: () -> Unit={}
 ) {
     OutlinedTextField(
         value = searchQuery,
@@ -40,7 +41,7 @@ fun SearchBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(16.dp)),
         placeholder = {
             Text(
@@ -71,16 +72,16 @@ fun SearchBar(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
         shape = RoundedCornerShape(16.dp),
         textStyle = MaterialTheme.typography.bodyLarge,
-//        colors = TextFieldDefaults.outlinedTextFieldColors(
-//            focusedBorderColor = Color.Transparent,
-//            unfocusedBorderColor = Color.Transparent,
+        colors = TextFieldDefaults.colors(
+  //          focusedBorderColor = Color.Transparent,
+     //      unfocusedBorderColor = Color.Transparent,
 //            cursorColor = MaterialTheme.colorScheme.primary,
-//            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-//            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-//        )
+           focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+        )
     )
-}
 
+}
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterColumn(
