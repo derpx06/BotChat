@@ -39,6 +39,26 @@ class ModelViewModel(
             }
         }
     }
+    fun estimateParameters(model: OpenRouterModel): Long {
+        val contextLength = model.contextLength ?: 8000
+        val name = model.name.lowercase()
+        return when {
+            name.contains("405b") || contextLength > 128000 -> 405_000_000_000
+            name.contains("70b") || contextLength > 32000 -> 70_000_000_000
+            name.contains("8x22b") || contextLength > 16000 -> 22_000_000_000
+            name.contains("8b") || contextLength > 8000 -> 8_000_000_000
+            else -> 1_000_000_000
+        }
+    }
+
+    fun formatParameters(parameters: Long): String {
+        return when {
+            parameters >= 1_000_000_000 -> "${parameters / 1_000_000_000}B"
+            parameters >= 1_000_000 -> "${parameters / 1_000_000}M"
+            else -> "$parameters"
+        }
+    }
+
 
     fun retry() {
         fetchModels()

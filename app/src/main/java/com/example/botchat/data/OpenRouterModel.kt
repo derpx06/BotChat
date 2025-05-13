@@ -13,7 +13,27 @@ data class OpenRouterModel(
     @SerializedName("top_provider") val topProvider: TopProvider?,
     @SerializedName("per_request_limits") val perRequestLimits: Any?,
     @SerializedName("supported_parameters") val supportedParameters: List<String>?
-)
+){
+    fun estimateParameters(model: OpenRouterModel): Long {
+        val contextLength = model.contextLength ?: 8000
+        val name = model.name.lowercase()
+        return when {
+            name.contains("405b") || contextLength > 128000 -> 405_000_000_000
+            name.contains("70b") || contextLength > 32000 -> 70_000_000_000
+            name.contains("8x22b") || contextLength > 16000 -> 22_000_000_000
+            name.contains("8b") || contextLength > 8000 -> 8_000_000_000
+            else -> 1_000_000_000
+        }
+    }
+
+    fun formatParameters(parameters: Long): String {
+        return when {
+            parameters >= 1_000_000_000 -> "${parameters / 1_000_000_000}B"
+            parameters >= 1_000_000 -> "${parameters / 1_000_000}M"
+            else -> "$parameters"
+        }
+    }
+}
 
 data class Architecture(
     @SerializedName("modality") val modality: String?,

@@ -89,3 +89,18 @@ val SettingsBackgroundGradientLight = Brush.verticalGradient(
 val SettingsBorderGradient = Brush.verticalGradient(
     colors = listOf(ElectricCyan.copy(alpha = 0.3f), Transparent)
 )
+val SleekGradientDark = Brush.verticalGradient(
+    colors = listOf(Color(0xFF0A0A1F), Color(0xFF1E3A8A), Color(0xFF4B0082))
+)
+
+val SleekGradientLight = Brush.verticalGradient(
+    colors = listOf(Color(0xFFF5F5F5), Color(0xFFE6E6FA), Color(0xFFB0E0E6))
+)
+
+val CardGradientDark = Brush.linearGradient(
+    colors = listOf(Color(0xFF1E3A8A).copy(alpha = 0.3f), Color(0xFF4B0082).copy(alpha = 0.3f))
+)
+
+val CardGradientLight = Brush.linearGradient(
+    colors = listOf(Color(0xFFE6E6FA).copy(alpha = 0.3f), Color(0xFFB0E0E6).copy(alpha = 0.3f))
+)
