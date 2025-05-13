@@ -11,7 +11,7 @@ interface modelDao{
     @Insert
     suspend fun insertModel(model: SelectedModel)
     @Query("SELECT * FROM selected_models")
-    suspend fun getAllModels(): Flow<List<SelectedModel>>
+     fun getAllModels(): Flow<List<SelectedModel>>
     @Query("DELETE FROM selected_models WHERE id = :modelId")
     suspend fun deleteModel(modelId: String)
     @Delete

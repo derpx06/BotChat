@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 // Entity to represent a selected model in the database
 @Entity(tableName = "selected_models")
 data class SelectedModel(
-    @PrimaryKey val id: String,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
-    val description: String?
+    val description: String
 )
