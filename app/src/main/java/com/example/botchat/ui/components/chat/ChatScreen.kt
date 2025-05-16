@@ -17,6 +17,8 @@ import com.example.botchat.R
 import com.example.botchat.Repository.ChatRepository
 import com.example.botchat.data.UserSettingsDataStore
 import com.example.botchat.database.ChatDatabase
+import com.example.botchat.database.modelDatabase.modelDao
+import com.example.botchat.database.modelDatabase.modelDatabase
 import com.example.botchat.ui.components.TopBar
 import com.example.botchat.ui.components.settings.SettingsSheetBottom
 import com.example.botchat.ui.theme.*
@@ -27,6 +29,7 @@ import com.example.botchat.viewmodel.setting.SettingViewModelFactory
 
 @Composable
 fun ChatScreen(
+    modelDao: modelDao,
     chatViewModel: ChatViewModel = viewModel(
         factory = ChatViewModelFactory(
             UserSettingsDataStore(LocalContext.current),
@@ -36,12 +39,14 @@ fun ChatScreen(
     settingViewModel: SettingViewModel = viewModel(
         factory = SettingViewModelFactory(UserSettingsDataStore(LocalContext.current))
     ),
-    onNavigateToModels: () -> Unit = {}
+    onNavigateToModels: () -> Unit = {} // Added callback
 ) {
     val uiState by chatViewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = settingViewModel.getDarkModeEnabled()
     val selectedTheme by settingViewModel.theme.collectAsStateWithLifecycle(initialValue = "gradient")
     val showSettings = settingViewModel.showSettings
+    val context = LocalContext.current
+    val modelDao = remember { modelDatabase.getDatabase(context).modelDao() } // Initialize modelDao
 
     Box(
         modifier = Modifier
@@ -116,7 +121,9 @@ fun ChatScreen(
         ) {
             SettingsSheetBottom(
                 viewModel = settingViewModel,
-                onDismiss = { settingViewModel.toggleSettings() }
+                onDismiss = { settingViewModel.toggleSettings() },
+                onNavigateToModels = onNavigateToModels,
+                modelDao = modelDao
             )
         }
     }

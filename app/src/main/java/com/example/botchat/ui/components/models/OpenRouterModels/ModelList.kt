@@ -20,14 +20,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.data.OpenRouterModel
 import com.example.botchat.data.Architecture
-import com.example.botchat.data.Pricing
-import com.example.botchat.data.TopProvider
+import com.example.botchat.database.modelDatabase.SelectedModel
+import com.example.botchat.database.modelDatabase.modelDao
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ModelList(
@@ -37,10 +37,12 @@ fun ModelList(
     searchQuery: String,
     filters: Set<String>,
     sortBy: SortOption,
+    modelDao: modelDao,
     onSearchQueryChange: (String) -> Unit,
     onClearSearch: () -> Unit,
     onFilterChange: (String) -> Unit,
     onSortByChange: (SortOption) -> Unit,
+    onModelSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -62,6 +64,8 @@ fun ModelList(
                 model = model,
                 isDarkTheme = isDarkTheme,
                 theme = theme,
+                modelDao = modelDao,
+                onModelSelected = onModelSelected,
                 modifier = Modifier
                     .animateItem(
                         fadeInSpec = tween(400, easing = LinearOutSlowInEasing),
@@ -77,11 +81,14 @@ fun ModelCard(
     model: OpenRouterModel,
     isDarkTheme: Boolean,
     theme: String,
+    modelDao: modelDao,
+    onModelSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     val isFreeModel = model.id.contains(":free", ignoreCase = true)
     val inputType = model.architecture?.inputModalities?.joinToString(", ") ?: "Text"
+    val scope = rememberCoroutineScope()
 
     ElevatedCard(
         modifier = modifier
@@ -150,14 +157,24 @@ fun ModelCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     AnimatedIconButton(
-                        onClick = { /* Add Action */ },
+                        onClick = {
+                            scope.launch {
+                                val selectedModel = SelectedModel(
+                                    modelId = model.id,
+                                    name = model.name,
+                                    description = model.description ?: "No description available"
+                                )
+                                modelDao.insertSelectedModel(selectedModel)
+                                onModelSelected(model.id)
+                            }
+                        },
                         icon = Icons.Default.Add,
                         contentDescription = "Add Model",
                         modifier = Modifier.size(32.dp)
                     )
                     AnimatedIconButton(
                         onClick = { expanded = !expanded },
-                        icon = if (expanded) Icons.Default.ArrowDropDown else Icons.Default.ArrowDropDown,
+                        icon = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.ArrowDropDown,
                         contentDescription = if (expanded) "Collapse" else "Expand",
                         modifier = Modifier.size(32.dp)
                     )
@@ -337,84 +354,22 @@ fun Badge(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ModelListPreview() {
-    MaterialTheme {
-        val sampleModels = listOf(
-            OpenRouterModel(
-                id = "model:free",
-                name = "Sophisticated AI",
-                created = 1625097600,
-                description = "A free, high-performance model for natural language processing tasks",
-                contextLength = 32000,
-                architecture = Architecture(
-                    inputModalities = listOf("text"),
-                    outputModalities = listOf("text"),
-                    modality = "text",
-                    tokenizer = "custom",
-                    instructType = "chat"
-                ),
-                pricing = Pricing(
-                    prompt = "$0.01",
-                    completion = "$0.02",
-                    request = null,
-                    image = null,
-                    webSearch = null,
-                    internalReasoning = null
-                ),
-                topProvider = TopProvider(
-                    contextLength = 32000,
-                    maxCompletionTokens = 4096,
-                    isModerated = true
-                ),
-                perRequestLimits = null,
-                supportedParameters = listOf("temperature", "max_tokens")
-            ),
-            OpenRouterModel(
-                id = "model:pro",
-                name = "Elite AI Model",
-                created = 1625184000,
-                description = "Advanced multimodal model supporting both text and image inputs",
-                contextLength = 128000,
-                architecture = Architecture(
-                    inputModalities = listOf("image", "text"),
-                    outputModalities = listOf("text"),
-                    modality = "multimodal",
-                    tokenizer = "advanced",
-                    instructType = "chat"
-                ),
-                pricing = Pricing(
-                    prompt = "$0.05",
-                    completion = "$0.10",
-                    request = null,
-                    image = null,
-                    webSearch = null,
-                    internalReasoning = null
-                ),
-                topProvider = TopProvider(
-                    contextLength = 128000,
-                    maxCompletionTokens = 8192,
-                    isModerated = false
-                ),
-                perRequestLimits = null,
-                supportedParameters = listOf("temperature", "max_tokens", "top_p")
-            )
-        )
-        ModelList(
-            models = sampleModels,
-            isDarkTheme = false,
-            theme = "plain",
-            searchQuery = "",
-            filters = setOf("Free", "Text"),
-            sortBy = SortOption.NAME,
-            onSearchQueryChange = {},
-            onClearSearch = {},
-            onFilterChange = {},
-            onSortByChange = {},
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp)
-        )
+fun estimateParameters(model: OpenRouterModel): Long {
+    val contextLength = model.contextLength ?: 8000
+    val name = model.name.lowercase()
+    return when {
+        name.contains("405b") || contextLength > 128000 -> 405_000_000_000
+        name.contains("70b") || contextLength > 32000 -> 70_000_000_000
+        name.contains("8x22b") || contextLength > 16000 -> 22_000_000_000
+        name.contains("8b") || contextLength > 8000 -> 8_000_000_000
+        else -> 1_000_000_000
+    }
+}
+
+fun formatParameters(parameters: Long): String {
+    return when {
+        parameters >= 1_000_000_000 -> "${parameters / 1_000_000_000}B"
+        parameters >= 1_000_000 -> "${parameters / 1_000_000}M"
+        else -> "$parameters"
     }
 }

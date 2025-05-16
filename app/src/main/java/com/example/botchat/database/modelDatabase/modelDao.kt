@@ -7,15 +7,16 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface modelDao{
+interface modelDao {
     @Insert
-    suspend fun insertModel(model: SelectedModel)
+    suspend fun insertSelectedModel(model: SelectedModel)
+
     @Query("SELECT * FROM selected_models")
-     fun getAllModels(): Flow<List<SelectedModel>>
-    @Query("DELETE FROM selected_models WHERE id = :modelId")
-    suspend fun deleteModel(modelId: String)
+    fun getAllModels(): Flow<List<SelectedModel>>
+
     @Delete
     suspend fun deleteSelectedModel(model: SelectedModel)
+
     @Query("DELETE FROM selected_models")
     suspend fun deleteAllModels()
 }

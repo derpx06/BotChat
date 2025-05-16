@@ -12,11 +12,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.botchat.database.modelDatabase.modelDao
 import com.example.botchat.ui.theme.*
 import com.example.botchat.viewmodel.setting.SettingViewModel
 
@@ -24,28 +24,29 @@ import com.example.botchat.viewmodel.setting.SettingViewModel
 @Composable
 fun SettingsSheetBottom(
     viewModel: SettingViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onNavigateToModels: () -> Unit,
+    modelDao: modelDao
 ) {
     val darkModeEnabled = viewModel.getDarkModeEnabled()
     val darkModeSetting by viewModel.darkModeSetting.collectAsStateWithLifecycle(initialValue = "system")
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle(initialValue = true)
     val cachingEnabled by viewModel.cachingEnabled.collectAsStateWithLifecycle(initialValue = true)
     val analyticsEnabled by viewModel.analyticsEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val historyRetentionDays by viewModel.historyRetentionDays.collectAsStateWithLifecycle(initialValue = 7)
+    val soundEffectsEnabled by viewModel.soundEffectsEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val systemPrompt by viewModel.systemPrompt.collectAsStateWithLifecycle(initialValue = "You are a helpful assistant.")
+    val selectedTheme by viewModel.theme.collectAsStateWithLifecycle(initialValue = "gradient")
     val openRouterApiKey by viewModel.openRouterApiKey.collectAsStateWithLifecycle(initialValue = "")
     val openRouterModel by viewModel.openRouterModel.collectAsStateWithLifecycle(initialValue = "google/gemma-3-12b-it:free")
     val huggingFaceApiKey by viewModel.huggingFaceApiKey.collectAsStateWithLifecycle(initialValue = "")
     val huggingFaceModel by viewModel.selectedModel.collectAsStateWithLifecycle(initialValue = "facebook/blenderbot-400M-distill")
     val apiEndpoint by viewModel.apiEndpoint.collectAsStateWithLifecycle(initialValue = "https://api-inference.huggingface.co")
-    val historyRetentionDays by viewModel.historyRetentionDays.collectAsStateWithLifecycle(initialValue = 7)
-    val soundEffectsEnabled by viewModel.soundEffectsEnabled.collectAsStateWithLifecycle(initialValue = false)
-    val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle(initialValue = "openrouter")
-    val systemPrompt by viewModel.systemPrompt.collectAsStateWithLifecycle(initialValue = "You are a helpful assistant.")
-    val selectedTheme by viewModel.theme.collectAsStateWithLifecycle(initialValue = "gradient")
-
-    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
     var showAdvancedSettings by remember { mutableStateOf(false) }
     var showOpenRouterApiKey by remember { mutableStateOf(false) }
     var showHuggingFaceApiKey by remember { mutableStateOf(false) }
+    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+    val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle(initialValue = "openrouter")
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -84,11 +85,7 @@ fun SettingsSheetBottom(
             ) {
                 Text(
                     text = "Settings",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 )
                 TabRow(
                     selectedTabIndex = selectedTabIndex,
@@ -147,7 +144,10 @@ fun SettingsSheetBottom(
                         onCachingToggle = { viewModel.updateCachingEnabled(it) },
                         onOpenRouterApiKeyVisibilityToggle = { showOpenRouterApiKey = !showOpenRouterApiKey },
                         onHuggingFaceApiKeyVisibilityToggle = { showHuggingFaceApiKey = !showHuggingFaceApiKey },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        settingViewModel = viewModel,
+                        modelDao = modelDao,
+                        onNavigateToModels = onNavigateToModels
                     )
                     1 -> GeneralSettingsTab(
                         notificationsEnabled = notificationsEnabled,

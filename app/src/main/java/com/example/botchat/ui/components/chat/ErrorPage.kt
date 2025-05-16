@@ -8,14 +8,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.ui.theme.*
-
+@Preview
 @Composable
 fun ErrorPage(
-    isDarkTheme: Boolean,
-    onDismiss: () -> Unit
+    isDarkTheme: Boolean=true,
+    onDismiss: () -> Unit={}
 ) {
     Box(
         modifier = Modifier
