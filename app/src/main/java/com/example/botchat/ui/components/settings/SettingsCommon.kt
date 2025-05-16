@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +17,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -22,6 +26,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.botchat.R
 import com.example.botchat.ui.theme.*
 
@@ -154,15 +159,24 @@ fun ApiKeyInput(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModelSelectionInput(
     selectedModel: String,
     onModelChange: (String) -> Unit,
     models: List<String>,
-    modifier: Modifier = Modifier
+    onAddNewModel: @Composable () -> Unit={}, // Lambda to handle adding a new model
+    onDeleteModel: (String) -> Unit={}, // Lambda to handle deleting a model
+    modifier: Modifier = Modifier,
+    navController: NavController= NavController(LocalContext.current)
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Box(
+    var isTextFieldFocused by remember { mutableStateOf(false) } // Track text field focus
+
+    // Using ExposedDropdownMenuBox for standard Material 3 dropdown
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
         modifier = modifier
             .fillMaxWidth()
             .shadow(
@@ -172,14 +186,14 @@ fun ModelSelectionInput(
             )
             .clip(RoundedCornerShape(24.dp))
             .background(
-                if (MaterialTheme.colorScheme.background == MidnightBlack) MidnightBlack else CloudWhite
+                if (MaterialTheme.colorScheme.background == MidnightBlack) MidnightBlack else CloudWhite // Keep custom background if desired
             )
             .border(
                 1.5.dp,
-                if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
+                if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40, // Keep custom border if desired
                 RoundedCornerShape(24.dp)
             )
-            .padding(16.dp)
+            .padding(16.dp) // Padding inside the box, not the text field
     ) {
         OutlinedTextField(
             value = selectedModel,
@@ -194,20 +208,15 @@ fun ModelSelectionInput(
                     )
                 )
             },
-            modifier = Modifier.fillMaxWidth(),
             readOnly = true,
             trailingIcon = {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(
-                        Icons.Default.ArrowDropDown,
-                        contentDescription = "Select Model",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
-                    )
-                }
+                // Use the appropriate icon based on expanded state
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Transparent,
-                unfocusedContainerColor = Transparent,
+                // Use MaterialTheme colors where possible for consistency
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
                 cursorColor = MaterialTheme.colorScheme.primary,
                 errorCursorColor = MaterialTheme.colorScheme.error,
                 focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
@@ -223,9 +232,18 @@ fun ModelSelectionInput(
                 disabledSupportingTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 errorSupportingTextColor = MaterialTheme.colorScheme.error,
                 focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                // Remove the default indicator color provided by ExposedDropdownMenuBox
+                // if you want to fully control the border with your custom border modifier
+                // indicatorColor = Color.Transparent
             ),
-            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier
+                .menuAnchor() // Required for ExposedDropdownMenuBox
+                .fillMaxWidth()
+            // Add focus indication if needed, though ExposedDropdownMenuBox handles some
+            //.onFocusEvent { focusState -> isTextFieldFocused = focusState.isFocused }
+            ,
+            shape = RoundedCornerShape(20.dp), // Match the outer shape
             supportingText = if (selectedModel.isBlank()) {
                 {
                     Text(
@@ -239,58 +257,100 @@ fun ModelSelectionInput(
                 }
             } else null
         )
-        DropdownMenu(
+
+        // The dropdown menu itself
+        ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
                 .shadow(
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(20.dp),
+                    elevation = 8.dp, // Increased elevation for better visual separation
+                    shape = RoundedCornerShape(12.dp), // Slightly less rounded for the dropdown
                     clip = true
                 )
-                .background(
-                    if (MaterialTheme.colorScheme.background == MidnightBlack) MidnightBlack else CloudWhite
-                )
-                .clip(RoundedCornerShape(20.dp))
-                .border(
-                    1.5.dp,
-                    if (MaterialTheme.colorScheme.background == MidnightBlack) ElectricCyan else Purple40,
-                    RoundedCornerShape(20.dp)
+                .background(MaterialTheme.colorScheme.surface) // Use surface color
+                .clip(RoundedCornerShape(12.dp))
+                .border( // Optional: add a subtle border to the dropdown
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    RoundedCornerShape(12.dp)
                 )
                 .width(IntrinsicSize.Max)
-                .heightIn(max = 300.dp)
+                .heightIn(max = 300.dp) // Limit height and make it scrollable
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
+            Column {
+                // "Add New Model" Button
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            "Add New Model",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    onClick = {
+                        onAddNewModel
+                       expanded = false // Close dropdown after clicking
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Add New Model",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)) // Divider
+
+                // Model list with delete button
                 models.forEach { model ->
                     DropdownMenuItem(
                         text = {
                             Text(
                                 model,
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = if (model == selectedModel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                )
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (model == selectedModel) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (model == selectedModel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
                         },
                         onClick = {
                             onModelChange(model)
-                            expanded = false
+                            expanded = false // Close dropdown after selection
                         },
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(20.dp))
                             .background(
                                 if (model == selectedModel) MaterialTheme.colorScheme.primary.copy(
-                                    alpha = 0.15f
+                                    alpha = 0.1f
                                 )
-                                else Transparent
+                                else Color.Transparent
                             )
+                        ,
+                        // Adding trailing icon for delete
+                        trailingIcon = {
+                            // Only show delete icon if there are multiple models,
+                            // preventing deletion of the last model if that's a requirement.
+                            // Adjust this logic based on your needs.
+                            if (models.size > 1) {
+                                IconButton(
+                                    onClick = {
+                                        onDeleteModel(model)
+                                        // No need to close the dropdown here, as the list will update
+                                    },
+                                    modifier = Modifier.size(24.dp) // Adjust size as needed
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete Model: $model",
+                                        tint = MaterialTheme.colorScheme.error // Use error color for delete
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
             }

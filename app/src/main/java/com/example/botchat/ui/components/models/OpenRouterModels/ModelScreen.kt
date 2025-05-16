@@ -24,19 +24,20 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.botchat.data.OpenRouterModel
 import com.example.botchat.data.UserSettingsDataStore
+import com.example.botchat.database.modelDatabase.modelDao
 import com.example.botchat.ui.theme.CloudWhite
 import com.example.botchat.ui.theme.MidnightBlack
 import com.example.botchat.viewmodel.openrouterModels.ModelUIState
 import com.example.botchat.viewmodel.openrouterModels.ModelViewModel
 import com.example.botchat.viewmodel.setting.SettingViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 enum class SortOption(val label: String) {
     NAME("Name"),
@@ -147,7 +148,6 @@ fun SearchBar(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterColumn(
     filters: Set<String>,
@@ -177,10 +177,9 @@ fun FilterColumn(
                 onSortByChange = onSortByChange
             )
         }
-        FlowRow(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf("Free", "Image", "Text").forEach { filter ->
                 AnimatedFilterChip(
@@ -288,18 +287,14 @@ fun SortByDropdown(
                 .background(MaterialTheme.colorScheme.surfaceContainer)
                 .clip(RoundedCornerShape(12.dp))
         ) {
-            SortOption.values().forEachIndexed { index, option ->
+            SortOption.values().forEach { option ->
                 DropdownMenuItem(
                     text = {
                         Text(
                             option.label,
                             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-//                            modifier = Modifier.animateContentSize(
-//                                enter = fadeIn(tween(150, delayMillis = index * 50)) + slideInVertically(tween(150, delayMillis = index * 50)),
-//                                exit = fadeOut(tween(150))
-//                            )
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     onClick = {
@@ -314,7 +309,6 @@ fun SortByDropdown(
         }
     }
 }
-
 
 @Composable
 fun ShimmerList(innerPadding: PaddingValues) {
@@ -396,7 +390,7 @@ fun ErrorScreen(message: String, onRetry: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModelScreen(
-    settingViewModel: SettingViewModel = viewModel(),
+    settingViewModel: SettingViewModel,
     modelViewModel: ModelViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             val dataStore = UserSettingsDataStore(LocalContext.current)
@@ -406,6 +400,8 @@ fun ModelScreen(
             }
         }
     ),
+    modelDao: modelDao,
+    onModelSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isDarkTheme = settingViewModel.getDarkModeEnabled()
@@ -414,6 +410,8 @@ fun ModelScreen(
     var searchQuery by remember { mutableStateOf("") }
     var sortBy by remember { mutableStateOf(SortOption.NAME) }
     var filters by remember { mutableStateOf(setOf<String>()) }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val bgColor = if (isDarkTheme) MidnightBlack else CloudWhite
 
@@ -433,6 +431,7 @@ fun ModelScreen(
                 )
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier
             .fillMaxSize()
             .background(bgColor)
@@ -463,10 +462,6 @@ fun ModelScreen(
                                     "Free" -> model.id.contains(":free", ignoreCase = true)
                                     "Image" -> model.architecture?.inputModalities?.contains("image") == true
                                     "Text" -> model.architecture?.inputModalities?.contains("text") == true
-                                   // "Audio" -> model.architecture?.inputModalities?.contains("audio") == true
-                                    //"Above 8B" -> estimateParameters(model) > 8_000_000_000
-                                    //"Above 16B" -> estimateParameters(model) > 16_000_000_000
-                                    //"Above 80B" -> estimateParameters(model) > 80_000_000_000
                                     else -> false
                                 }
                             }
@@ -477,7 +472,9 @@ fun ModelScreen(
                                 SortOption.NAME -> compareBy { it.name }
                                 SortOption.DATE_UPDATED -> compareByDescending { it.created ?: 0 }
                                 SortOption.CONTEXT_LENGTH -> compareByDescending { it.contextLength ?: 0 }
-                                SortOption.BILLION_PARAMETERS -> compareByDescending { estimateParameters(it) }
+                                SortOption.BILLION_PARAMETERS -> compareByDescending { model ->
+                                    model.contextLength?.toLong() ?: 0 // Simplified for sorting
+                                }
                             }
                         )
                     ModelList(
@@ -487,12 +484,19 @@ fun ModelScreen(
                         searchQuery = searchQuery,
                         filters = filters,
                         sortBy = sortBy,
+                        modelDao = modelDao,
                         onSearchQueryChange = { searchQuery = it },
                         onClearSearch = { searchQuery = "" },
                         onFilterChange = { filter ->
                             filters = if (filters.contains(filter)) filters - filter else filters + filter
                         },
                         onSortByChange = { sortBy = it },
+                        onModelSelected = { modelId ->
+                            scope.launch {
+                                onModelSelected(modelId)
+                                snackbarHostState.showSnackbar("Model added")
+                            }
+                        },
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
@@ -502,69 +506,5 @@ fun ModelScreen(
                 )
             }
         }
-    }
-}
-
-fun estimateParameters(model: OpenRouterModel): Long {
-    val contextLength = model.contextLength ?: 8000
-    val name = model.name.lowercase()
-    return when {
-        name.contains("405b") || contextLength > 128000 -> 405_000_000_000
-        name.contains("70b") || contextLength > 32000 -> 70_000_000_000
-        name.contains("8x22b") || contextLength > 16000 -> 22_000_000_000
-        name.contains("8b") || contextLength > 8000 -> 8_000_000_000
-        else -> 1_000_000_000
-    }
-}
-
-fun formatParameters(parameters: Long): String {
-    return when {
-        parameters >= 1_000_000_000 -> "${parameters / 1_000_000_000}B"
-        parameters >= 1_000_000 -> "${parameters / 1_000_000}M"
-        else -> "$parameters"
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ModelScreenPreview() {
-    MaterialTheme {
-        ModelScreen()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SearchBarPreview() {
-    MaterialTheme {
-        SearchBar(
-            searchQuery = "",
-            onSearchQueryChange = {},
-            onClear = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun FilterColumnPreview() {
-    MaterialTheme {
-        FilterColumn(
-            filters = setOf("Free", "Text"),
-            onFilterChange = {},
-            sortBy = SortOption.NAME,
-            onSortByChange = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SortByDropdownPreview() {
-    MaterialTheme {
-        SortByDropdown(
-            sortBy = SortOption.NAME,
-            onSortByChange = {}
-        )
     }
 }

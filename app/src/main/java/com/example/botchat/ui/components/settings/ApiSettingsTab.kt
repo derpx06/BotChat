@@ -1,7 +1,6 @@
 package com.example.botchat.ui.components.settings
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,10 +17,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.botchat.ui.theme.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.botchat.database.modelDatabase.modelDao
+import com.example.botchat.ui.theme.Transparent
+import com.example.botchat.viewmodel.setting.SettingViewModel
 
 @Composable
 fun ApiSettingsTab(
+    settingViewModel: SettingViewModel,
+    modelDao: modelDao,
+    onNavigateToModels: () -> Unit,
     selectedProvider: String,
     openRouterApiKey: String,
     openRouterModel: String,
@@ -44,6 +49,10 @@ fun ApiSettingsTab(
     onHuggingFaceApiKeyVisibilityToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val selectedProvider by settingViewModel.selectedProvider.collectAsStateWithLifecycle(initialValue = "openrouter")
+    val cachingEnabled by settingViewModel.cachingEnabled.collectAsStateWithLifecycle(initialValue = true)
+    var showAdvancedSettings by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -62,7 +71,7 @@ fun ApiSettingsTab(
         )
         ProviderSelectionInput(
             selectedProvider = selectedProvider,
-            onProviderChange = onSelectedProviderChange
+            onProviderChange = { settingViewModel.updateSelectedProvider(it) }
         )
         var selectedSubTabIndex by remember { mutableStateOf(if (selectedProvider == "openrouter") 0 else 1) }
         LaunchedEffect(selectedProvider) {
@@ -111,12 +120,9 @@ fun ApiSettingsTab(
         }
         when (selectedSubTabIndex) {
             0 -> OpenRouterSettingsSubTab(
-                apiKey = openRouterApiKey,
-                selectedModel = openRouterModel,
-                showApiKey = showOpenRouterApiKey,
-                onApiKeyChange = onOpenRouterApiKeyChange,
-                onSelectedModelChange = onOpenRouterModelChange,
-                onApiKeyVisibilityToggle = onOpenRouterApiKeyVisibilityToggle,
+                settingViewModel = settingViewModel,
+                modelDao = modelDao,
+                onNavigateToModels = onNavigateToModels,
                 modifier = Modifier.fillMaxWidth()
             )
             1 -> HuggingFaceSettingsSubTab(
@@ -134,8 +140,8 @@ fun ApiSettingsTab(
         AdvancedSettingsSection(
             showAdvancedSettings = showAdvancedSettings,
             cachingEnabled = cachingEnabled,
-            onAdvancedSettingsToggle = onAdvancedSettingsToggle,
-            onCachingToggle = onCachingToggle
+            onAdvancedSettingsToggle = { showAdvancedSettings = !showAdvancedSettings },
+            onCachingToggle = { settingViewModel.updateCachingEnabled(it) }
         )
     }
 }
