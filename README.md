@@ -1,1 +1,1 @@
-A simple android app for ai reposnses trhough openrouter/huggingfaceapi keys or local server.Work in progress now you can also choose whihcb llm you want to run.
+A simple android app for ai reposnses trhough openrouter/huggingfaceapi keys or local server.Work in progress now you can also choose whihcb llm you want to run.now offline llm models will also be able to rn on your phone
