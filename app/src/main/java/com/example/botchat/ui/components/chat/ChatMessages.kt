@@ -1,10 +1,17 @@
 package com.example.botchat.ui.components.chat
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,7 +23,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -53,79 +61,87 @@ fun ChatMessages(
         }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-            .then(
-                when (theme) {
-                    "gradient" -> Modifier.background(
-                        brush = if (isDarkTheme) ChatInterfaceGradientDark else ChatInterfaceGradientLight,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        alpha = 0.95f
-                    )
-                    "mixed" -> Modifier.background(
-                        brush = if (isDarkTheme) SleekGradientDark else SleekGradientLight,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        alpha = 0.95f
-                    )
-                    "cosmic" -> Modifier.background(
-                        brush = if (isDarkTheme) CosmicGradientDark else CosmicGradientLight,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        alpha = 0.95f
-                    )
-                    "pastel" -> Modifier.background(
-                        brush = if (isDarkTheme) PastelGradientDark else PastelGradientLight,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        alpha = 0.95f
-                    )
-                    "metallic" -> Modifier.background(
-                        brush = if (isDarkTheme) MetallicGradientDark else MetallicGradientLight,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        alpha = 0.95f
-                    )
-                    "jewel" -> Modifier.background(
-                        brush = if (isDarkTheme) JewelGradientDark else JewelGradientLight,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        alpha = 0.95f
-                    )
-                    "minimal" -> Modifier.background(
-                        brush = if (isDarkTheme) MinimalGradientDark else MinimalGradientLight,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        alpha = 0.95f
-                    )
-                    else -> Modifier.background(
-                        color = if (isDarkTheme) MidnightBlack else CloudWhite,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-                    )
-                }
-            )
-            .border(
-                width = 0.5.dp,
-                brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-            )
-            .padding(PaddingLarge)
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn(animationSpec = tween(300)) + expandVertically(
+            animationSpec = spring(dampingRatio = 0.7f)
+        ),
+        exit = fadeOut(animationSpec = tween(300))
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = PaddingSmall),
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(PaddingMedium),
-            contentPadding = PaddingValues(vertical = PaddingLarge)
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                .then(
+                    when (theme) {
+                        "gradient" -> Modifier.background(
+                            brush = if (isDarkTheme) ChatInterfaceGradientDark else ChatInterfaceGradientLight,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                            alpha = 0.95f
+                        )
+                        "mixed" -> Modifier.background(
+                            brush = if (isDarkTheme) SleekGradientDark else SleekGradientLight,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                            alpha = 0.95f
+                        )
+                        "cosmic" -> Modifier.background(
+                            brush = if (isDarkTheme) CosmicGradientDark else CosmicGradientLight,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                            alpha = 0.95f
+                        )
+                        "pastel" -> Modifier.background(
+                            brush = if (isDarkTheme) PastelGradientDark else PastelGradientLight,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                            alpha = 0.95f
+                        )
+                        "metallic" -> Modifier.background(
+                            brush = if (isDarkTheme) MetallicGradientDark else MetallicGradientLight,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                            alpha = 0.95f
+                        )
+                        "jewel" -> Modifier.background(
+                            brush = if (isDarkTheme) JewelGradientDark else JewelGradientLight,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                            alpha = 0.95f
+                        )
+                        "minimal" -> Modifier.background(
+                            brush = if (isDarkTheme) MinimalGradientDark else MinimalGradientLight,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                            alpha = 0.95f
+                        )
+                        else -> Modifier.background(
+                            color = if (isDarkTheme) MidnightBlack else CloudWhite,
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                        )
+                    }
+                )
+                .border(
+                    width = 0.5.dp,
+                    brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                )
+                .padding(PaddingLarge)
         ) {
-            items(messages) { message ->
-                ChatMessageItem(message = message, isDarkTheme = isDarkTheme, theme = theme)
-            }
-            item {
-                AnimatedVisibility(
-                    visible = isLoading,
-                    enter = fadeIn(animationSpec = tween(400)) + slideInVertically(),
-                    exit = fadeOut(animationSpec = tween(400)) + slideOutVertically()
-                ) {
-                    ThinkingIndicator(isDarkTheme = isDarkTheme)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = PaddingSmall),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(PaddingMedium),
+                contentPadding = PaddingValues(vertical = PaddingLarge)
+            ) {
+                items(messages) { message ->
+                    ChatMessageItem(message = message, isDarkTheme = isDarkTheme, theme = theme)
+                }
+                item {
+                    AnimatedVisibility(
+                        visible = isLoading,
+                        enter = fadeIn(animationSpec = tween(350)) + slideInVertically(),
+                        exit = fadeOut(animationSpec = tween(350)) + slideOutVertically()
+                    ) {
+                        ThinkingIndicator(isDarkTheme = isDarkTheme)
+                    }
                 }
             }
         }
@@ -137,22 +153,23 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
     val isUserMessage = message.isUser
     val alignment = if (isUserMessage) Alignment.End else Alignment.Start
     val bubbleShape = if (isUserMessage) {
-        RoundedCornerShape(topStart = 16.dp, topEnd = 8.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+        RoundedCornerShape(topStart = 20.dp, topEnd = 10.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
     } else {
-        RoundedCornerShape(topStart = 8.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+        RoundedCornerShape(topStart = 10.dp, topEnd = 20.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
     }
 
-    var isHovered by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
 
     AnimatedVisibility(
         visible = true,
-        enter = fadeIn(animationSpec = tween(400)) + slideInHorizontally(
+        enter = fadeIn(animationSpec = tween(300)) + slideInHorizontally(
             initialOffsetX = { if (isUserMessage) it else -it },
-            animationSpec = spring(dampingRatio = 0.9f, stiffness = 200f)
+            animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f)
         ),
-        exit = fadeOut(animationSpec = tween(400)) + slideOutHorizontally(
+        exit = fadeOut(animationSpec = tween(300)) + slideOutHorizontally(
             targetOffsetX = { if (isUserMessage) it else -it },
-            animationSpec = tween(400)
+            animationSpec = tween(300)
         )
     ) {
         Box(
@@ -175,84 +192,84 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
                                 brush = if (isDarkTheme) ChatBubbleGradientDark else ChatBubbleGradientLight,
                                 shape = bubbleShape,
                                 alpha = 0.9f
-                            ).shadow(4.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             isUserMessage && theme == "mixed" -> Modifier.background(
                                 brush = if (isDarkTheme) CardGradientDark else CardGradientLight,
                                 shape = bubbleShape,
                                 alpha = 0.9f
-                            ).shadow(4.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             isUserMessage && theme == "cosmic" -> Modifier.background(
                                 brush = if (isDarkTheme) CosmicBubbleGradientDark else CosmicBubbleGradientLight,
                                 shape = bubbleShape,
                                 alpha = 0.9f
-                            ).shadow(4.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             isUserMessage && theme == "pastel" -> Modifier.background(
                                 brush = if (isDarkTheme) PastelBubbleGradientDark else PastelBubbleGradientLight,
                                 shape = bubbleShape,
                                 alpha = 0.9f
-                            ).shadow(4.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             isUserMessage && theme == "metallic" -> Modifier.background(
                                 brush = if (isDarkTheme) MetallicBubbleGradientDark else MetallicBubbleGradientLight,
                                 shape = bubbleShape,
                                 alpha = 0.9f
-                            ).shadow(4.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             isUserMessage && theme == "jewel" -> Modifier.background(
                                 brush = if (isDarkTheme) JewelBubbleGradientDark else JewelBubbleGradientLight,
                                 shape = bubbleShape,
                                 alpha = 0.9f
-                            ).shadow(4.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             isUserMessage && theme == "minimal" -> Modifier.background(
                                 brush = if (isDarkTheme) MinimalBubbleGradientDark else MinimalBubbleGradientLight,
                                 shape = bubbleShape,
                                 alpha = 0.9f
-                            ).shadow(4.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             isUserMessage && theme == "plain" -> Modifier.background(
                                 color = if (isDarkTheme) AstralBlue.copy(alpha = 0.9f) else AccentIndigo.copy(alpha = 0.9f),
                                 shape = bubbleShape
-                            ).shadow(4.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             !isUserMessage && theme == "gradient" -> Modifier.background(
                                 brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                                 shape = bubbleShape,
                                 alpha = 0.92f
-                            ).shadow(2.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             !isUserMessage && theme == "mixed" -> Modifier.background(
                                 brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                                 shape = bubbleShape,
                                 alpha = 0.92f
-                            ).shadow(2.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             !isUserMessage && theme == "cosmic" -> Modifier.background(
                                 brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                                 shape = bubbleShape,
                                 alpha = 0.92f
-                            ).shadow(2.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             !isUserMessage && theme == "pastel" -> Modifier.background(
                                 brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                                 shape = bubbleShape,
                                 alpha = 0.92f
-                            ).shadow(2.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             !isUserMessage && theme == "metallic" -> Modifier.background(
                                 brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                                 shape = bubbleShape,
                                 alpha = 0.92f
-                            ).shadow(2.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             !isUserMessage && theme == "jewel" -> Modifier.background(
                                 brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                                 shape = bubbleShape,
                                 alpha = 0.92f
-                            ).shadow(2.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             !isUserMessage && theme == "minimal" -> Modifier.background(
                                 brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                                 shape = bubbleShape,
                                 alpha = 0.92f
-                            ).shadow(2.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                             else -> Modifier.background(
                                 color = if (isDarkTheme) CharredBlack.copy(alpha = 0.92f) else CloudWhite.copy(alpha = 0.92f),
                                 shape = bubbleShape
-                            ).shadow(2.dp, shape = bubbleShape, ambientColor = if (isHovered) NeonBlue else Transparent)
+                            )
                         }
                     )
                     .border(
-                        width = 0.5.dp,
+                        width = 0.75.dp,
                         brush = if (isDarkTheme) BottomFadeGradientDark else BottomFadeGradientLight,
                         shape = bubbleShape
                     )
@@ -261,7 +278,9 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
                         vertical = PaddingMedium
                     )
                     .widthIn(max = if (isUserMessage) 300.dp else 400.dp)
-                    .animateContentSize(animationSpec = spring(dampingRatio = 0.9f))
+                    .scale(if (isHovered) 1.02f else 1f)
+                    //(interactionSource)
+                    .animateContentSize(animationSpec = spring(dampingRatio = 0.8f))
             ) {
                 val annotatedText = if (!isUserMessage) {
                     parseResponse(message.content)
@@ -274,7 +293,7 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
                         fontSize = if (isUserMessage) 15.sp else 16.sp,
                         color = if (isDarkTheme) PureWhite else SlateBlack,
                         fontWeight = if (isUserMessage) FontWeight.Medium else FontWeight.Normal,
-                        lineHeight = 28.sp,
+                        lineHeight = 30.sp,
                         letterSpacing = 0.4.sp
                     ),
                     modifier = Modifier.fillMaxWidth()
@@ -331,6 +350,17 @@ private fun parseResponse(text: String): AnnotatedString {
 
 @Composable
 fun ThinkingIndicator(isDarkTheme: Boolean) {
+    val infiniteTransition = rememberInfiniteTransition(label = "ThinkingIndicator")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "Scale"
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -341,7 +371,13 @@ fun ThinkingIndicator(isDarkTheme: Boolean) {
                 brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                 alpha = 0.8f
             )
+            .border(
+                width = 0.5.dp,
+                brush = if (isDarkTheme) Brush.linearGradient(listOf(NeonBlue, GalacticGray)) else Brush.linearGradient(listOf(Aquamarine, CoolGray)),
+                shape = RoundedCornerShape(12.dp)
+            )
             .padding(horizontal = PaddingMedium, vertical = PaddingSmall)
+            .scale(scale)
             .animateContentSize(animationSpec = tween(300)),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
@@ -357,7 +393,8 @@ fun ThinkingIndicator(isDarkTheme: Boolean) {
                 fontSize = 14.sp,
                 color = if (isDarkTheme) GalacticGray else CoolGray,
                 fontWeight = FontWeight.Medium,
-                lineHeight = 20.sp
+                lineHeight = 20.sp,
+                letterSpacing = 0.3.sp
             )
         )
     }
