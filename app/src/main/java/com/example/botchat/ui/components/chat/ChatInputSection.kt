@@ -44,7 +44,8 @@ fun ChatInputSection(
     isLoading: Boolean,
     isDarkTheme: Boolean,
     useGradientTheme: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    photo_supported: Boolean = false
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "Effects")
     val cursorAlpha by infiniteTransition.animateFloat(
