@@ -21,19 +21,20 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.R
 import com.example.botchat.ui.theme.*
-
+@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
     title: String = "AI Assistant",
-    onSettingsClick: () -> Unit,
+    onSettingsClick: () -> Unit={},
     onModelsClick: () -> Unit = {},
-    onDeleteClick: () -> Unit,
-    isDarkTheme: Boolean,
+    onDeleteClick: () -> Unit={},
+    isDarkTheme: Boolean=false,
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "TopBarEffects")
@@ -104,7 +105,7 @@ fun TopBar(
                         alpha = 0.25f
                     )
                 },
-            shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
+            shape = RoundedCornerShape( 16.dp),
             color = if (isDarkTheme) MidnightBlack else CloudWhite
         ) {
             Row(
@@ -137,15 +138,15 @@ fun TopBar(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
-                                alpha = 0.9f
-                            )
-                            .border(
-                                width = 0.5.dp,
-                                brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
-                                shape = RoundedCornerShape(12.dp)
-                            )
+//                            .background(
+//                                brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
+//                                alpha = 0.9f
+//                            )
+//                            .border(
+//                                width = 0.5.dp,
+//                                brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
+//                                shape = RoundedCornerShape(12.dp)
+//                            )
                             .rotate(rotation)
                             .scale(if (isSettingsHovered) 1.05f else 1f),
                         interactionSource = settingsInteractionSource
@@ -153,7 +154,7 @@ fun TopBar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_star),
                             contentDescription = "Settings",
-                          //  tint = if (isDarkTheme) ElectricCyan else Purple40,
+                            tint = if (isDarkTheme) ElectricCyan else Purple40,
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -166,15 +167,15 @@ fun TopBar(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
-                                alpha = 0.9f
-                            )
-                            .border(
-                                width = 0.5.dp,
-                                brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
-                                shape = RoundedCornerShape(12.dp)
-                            )
+//                            .background(
+//                                brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
+//                                alpha = 0.9f
+//                            )
+//                            .border(
+//                                width = 0.5.dp,
+//                                brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
+//                                shape = RoundedCornerShape(12.dp)
+//                            )
                             .offset(y = drift.dp)
                             .scale(if (isModelsHovered) 1.05f else 1f),
                         interactionSource = modelsInteractionSource
@@ -195,15 +196,15 @@ fun TopBar(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
-                                alpha = 0.9f
-                            )
-                            .border(
-                                width = 0.5.dp,
-                                brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
-                                shape = RoundedCornerShape(12.dp)
-                            )
+//                            .background(
+//                                brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
+//                                alpha = 0.9f
+//                            )
+//                            .border(
+//                                width = 0.5.dp,
+//                                brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
+//                                shape = RoundedCornerShape(12.dp)
+//                            )
                             .offset(y = drift.dp)
                             .scale(if (isDeleteHovered) 1.05f else 1f),
                         interactionSource = deleteInteractionSource

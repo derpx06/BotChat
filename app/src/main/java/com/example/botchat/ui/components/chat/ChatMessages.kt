@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.database.ChatMessage
@@ -41,7 +42,6 @@ private val PaddingSmall = 8.dp
 private val PaddingMedium = 12.dp
 private val PaddingLarge = 16.dp
 private val PaddingExtraLarge = 24.dp
-
 @Composable
 fun ChatMessages(
     messages: List<ChatMessage>,
@@ -72,7 +72,7 @@ fun ChatMessages(
             modifier = modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                //.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 .then(
                     when (theme) {
                         "gradient" -> Modifier.background(
@@ -129,7 +129,7 @@ fun ChatMessages(
                     .padding(horizontal = PaddingSmall),
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(PaddingMedium),
-                contentPadding = PaddingValues(vertical = PaddingLarge)
+                //contentPadding = PaddingValues(vertical = PaddingMedium)
             ) {
                 items(messages) { message ->
                     ChatMessageItem(message = message, isDarkTheme = isDarkTheme, theme = theme)

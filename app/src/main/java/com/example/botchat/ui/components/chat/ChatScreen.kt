@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,10 +30,10 @@ import com.example.botchat.viewmodel.Chat.ChatViewModel
 import com.example.botchat.viewmodel.Chat.ChatViewModelFactory
 import com.example.botchat.viewmodel.setting.SettingViewModel
 import com.example.botchat.viewmodel.setting.SettingViewModelFactory
-
+@Preview
 @Composable
 fun ChatScreen(
-    modelDao: modelDao,
+    modelDao: modelDao= modelDatabase.getDatabase(LocalContext.current).modelDao(),
     chatViewModel: ChatViewModel = viewModel(
         factory = ChatViewModelFactory(
             UserSettingsDataStore(LocalContext.current),
@@ -69,11 +70,11 @@ fun ChatScreen(
                     brush = SolidColor(if (isDarkTheme) MidnightBlack else CloudWhite),
                     alpha = 0.85f
                 )
-                .border(
-                    width = 0.5.dp,
-                    brush = if (isDarkTheme) Brush.linearGradient(listOf(NeonBlue, GalacticGray)) else Brush.linearGradient(listOf(Aquamarine, CoolGray)),
-                    shape = RoundedCornerShape(16.dp)
-                )
+//                .border(
+//                    width = 0.5.dp,
+//                    brush = if (isDarkTheme) Brush.linearGradient(listOf(NeonBlue, GalacticGray)) else Brush.linearGradient(listOf(Aquamarine, CoolGray)),
+//                    shape = RoundedCornerShape(16.dp)
+//                )
                 .safeDrawingPadding()
                 .statusBarsPadding(),
             contentAlignment = Alignment.BottomCenter
@@ -96,7 +97,7 @@ fun ChatScreen(
                     isLoading = uiState.isLoading,
                     theme = selectedTheme,
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
                         .padding(bottom = PaddingLarge * 2 + PaddingMedium), // 40.dp for visibility
                     isDarkTheme = isDarkTheme
                 )
