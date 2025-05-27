@@ -46,8 +46,8 @@ fun AppNavigation(
     NavHost(navController = navController, startDestination = "chat") {
         composable("chat") {
             ChatScreen(
-                settingViewModel = settingViewModel,
-                modelDao = modelDao,
+                //settingViewModel = settingViewModel,
+                //modelDao = modelDao,
                 onNavigateToModels = { navController.navigate("models") }
             )
         }

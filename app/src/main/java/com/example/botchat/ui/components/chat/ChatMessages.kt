@@ -1,13 +1,7 @@
 package com.example.botchat.ui.components.chat
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -28,20 +22,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.database.ChatMessage
 import com.example.botchat.ui.theme.*
 import kotlinx.coroutines.launch
 
-// Padding Constants
-private val PaddingTiny = 4.dp
-private val PaddingExtraSmall = 6.dp
-private val PaddingSmall = 8.dp
-private val PaddingMedium = 12.dp
-private val PaddingLarge = 16.dp
-private val PaddingExtraLarge = 24.dp
 @Composable
 fun ChatMessages(
     messages: List<ChatMessage>,
@@ -72,7 +58,6 @@ fun ChatMessages(
             modifier = modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                //.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 .then(
                     when (theme) {
                         "gradient" -> Modifier.background(
@@ -128,8 +113,7 @@ fun ChatMessages(
                     .fillMaxSize()
                     .padding(horizontal = PaddingSmall),
                 state = listState,
-                verticalArrangement = Arrangement.spacedBy(PaddingMedium),
-                //contentPadding = PaddingValues(vertical = PaddingMedium)
+                verticalArrangement = Arrangement.spacedBy(PaddingMedium)
             ) {
                 items(messages) { message ->
                     ChatMessageItem(message = message, isDarkTheme = isDarkTheme, theme = theme)
@@ -279,7 +263,6 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
                     )
                     .widthIn(max = if (isUserMessage) 300.dp else 400.dp)
                     .scale(if (isHovered) 1.02f else 1f)
-                    //(interactionSource)
                     .animateContentSize(animationSpec = spring(dampingRatio = 0.8f))
             ) {
                 val annotatedText = if (!isUserMessage) {
@@ -399,3 +382,11 @@ fun ThinkingIndicator(isDarkTheme: Boolean) {
         )
     }
 }
+
+// Padding Constants
+private val PaddingTiny = 4.dp
+internal val PaddingExtraSmall = 6.dp
+private val PaddingSmall = 8.dp
+private val PaddingMedium = 12.dp
+private val PaddingLarge = 16.dp
+private val PaddingExtraLarge = 24.dp

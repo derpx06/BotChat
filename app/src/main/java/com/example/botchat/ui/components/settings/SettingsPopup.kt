@@ -26,7 +26,8 @@ fun SettingsSheetBottom(
     viewModel: SettingViewModel,
     onDismiss: () -> Unit,
     onNavigateToModels: () -> Unit,
-    modelDao: modelDao
+    modelDao: modelDao,
+    modifier: Modifier
 ) {
     val darkModeEnabled = viewModel.getDarkModeEnabled()
     val darkModeSetting by viewModel.darkModeSetting.collectAsStateWithLifecycle(initialValue = "system")

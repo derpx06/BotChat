@@ -2,7 +2,6 @@ package com.example.botchat.ui.components.chat
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +22,8 @@ fun ErrorDialog(
     errorMessage: String,
     isDarkTheme: Boolean,
     onDismiss: () -> Unit,
-    onRetry: (() -> Unit)? = null
+    onRetry: (() -> Unit)? = null,
+    modifier: Modifier
 ) {
     Dialog(onDismissRequest = onDismiss) {
         AnimatedVisibility(
