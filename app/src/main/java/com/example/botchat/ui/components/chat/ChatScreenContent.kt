@@ -66,8 +66,7 @@ fun ChatScreenContent(
                     brush = if (isDarkTheme) Brush.linearGradient(listOf(NeonBlue, ElectricCyan)) else Brush.linearGradient(listOf(Aquamarine, Purple40)),
                     shape = RoundedCornerShape(16.dp)
                 )
-                .safeDrawingPadding()
-                .statusBarsPadding(),
+                .safeContentPadding(), // Handles status, navigation, and other system insets
             contentAlignment = Alignment.BottomCenter
         ) {
             Column(
@@ -104,9 +103,9 @@ fun ChatScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .windowInsetsPadding(WindowInsets.ime)
+                    .windowInsetsPadding(WindowInsets.ime) // Sticks to keyboard
                     .padding(horizontal = PaddingLarge, vertical = PaddingMedium)
-                    .offset(y = (-PaddingMedium)),
+                    .align(Alignment.BottomCenter), // Explicitly align to bottom
                 photo_supported = false
             )
 
