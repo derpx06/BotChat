@@ -65,8 +65,7 @@ fun ChatScreenContent(
                     width = 0.5.dp,
                     brush = if (isDarkTheme) Brush.linearGradient(listOf(NeonBlue, ElectricCyan)) else Brush.linearGradient(listOf(Aquamarine, Purple40)),
                     shape = RoundedCornerShape(16.dp)
-                )
-                .safeContentPadding(), // Handles status, navigation, and other system insets
+                ),
             contentAlignment = Alignment.BottomCenter
         ) {
             Column(
@@ -102,11 +101,12 @@ fun ChatScreenContent(
                 useGradientTheme = selectedTheme == "gradient",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
-                    .windowInsetsPadding(WindowInsets.ime) // Sticks to keyboard
+                   // .wrapContentHeight()
+                    .align(Alignment.BottomCenter) // Align first
+                    //.windowInsetsPadding(WindowInsets.ime) // Then apply IME padding
                     .padding(horizontal = PaddingLarge, vertical = PaddingMedium)
-                    .align(Alignment.BottomCenter), // Explicitly align to bottom
-                photo_supported = false
+,
+                        photo_supported = false
             )
 
             AnimatedVisibility(

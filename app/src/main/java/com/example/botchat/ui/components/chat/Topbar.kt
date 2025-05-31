@@ -19,10 +19,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.botchat.ui.theme.*
-
+@Preview
 @Composable
 fun TopBar(
     title: String = "AI Assistant",
@@ -82,16 +83,7 @@ fun TopBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        color = if (isDarkTheme) PureWhite else SlateBlack,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp,
-                        letterSpacing = 0.5.sp
-                    ),
-                    modifier = Modifier.padding(start = 8.dp)
-                )
+
 
                 IconButton(
                     onClick = onMenuClick,
@@ -116,6 +108,17 @@ fun TopBar(
                         modifier = Modifier.size(32.dp)
                     )
                 }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        color = if (isDarkTheme) PureWhite else SlateBlack,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        letterSpacing = 0.5.sp
+                    ),
+                    modifier = Modifier.padding(start = 8.dp)
+                        .weight(1f)
+                )
             }
         }
     }

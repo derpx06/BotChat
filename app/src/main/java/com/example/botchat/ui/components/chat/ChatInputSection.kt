@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -34,15 +35,15 @@ private val PaddingTiny = 4.dp
 private val PaddingSmall = 8.dp
 private val PaddingMedium = 12.dp
 private val PaddingLarge = 16.dp
-
+@Preview
 @Composable
 fun ChatInputSection(
-    inputText: String,
-    onInputChange: (String) -> Unit,
-    onSendClick: () -> Unit,
-    onStopClick: () -> Unit,
-    isLoading: Boolean,
-    isDarkTheme: Boolean,
+    inputText: String="",
+    onInputChange: (String) -> Unit={},
+    onSendClick: () -> Unit={},
+    onStopClick: () -> Unit={},
+    isLoading: Boolean=false,
+    isDarkTheme: Boolean =true,
     useGradientTheme: Boolean = false,
     modifier: Modifier = Modifier,
     photo_supported: Boolean = false
