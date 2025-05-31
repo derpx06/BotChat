@@ -48,3 +48,4 @@ BotChat is an open-source AI chat app for Android, enabling users to engage with
    ```bash
    git clone https://github.com/your-repo/botchat.git
    cd botchat
+Pls contribute if you can
