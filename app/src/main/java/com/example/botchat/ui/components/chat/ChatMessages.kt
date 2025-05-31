@@ -108,32 +108,43 @@ fun ChatMessages(
                 )
                 .padding(PaddingLarge)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = PaddingSmall),
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(PaddingMedium)
-            ) {
-                items(messages) { message ->
-                    ChatMessageItem(message = message, isDarkTheme = isDarkTheme, theme = theme)
-                }
-                item {
-                    AnimatedVisibility(
-                        visible = isLoading,
-                        enter = fadeIn(animationSpec = tween(350)) + slideInVertically(),
-                        exit = fadeOut(animationSpec = tween(350)) + slideOutVertically()
-                    ) {
-                        ThinkingIndicator(isDarkTheme = isDarkTheme)
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = PaddingSmall),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(PaddingMedium)
+                ) {
+                    items(messages) { message ->
+                        ChatMessageItem(
+                            message = message, isDarkTheme = isDarkTheme, theme = theme,
+                            modifier = if (message == messages.lastOrNull() && !isLoading) {
+                                Modifier.padding(bottom = PaddingLarge) // Add padding to last message if no ThinkingIndicator
+                            } else {
+                                Modifier
+                            }
+                        )
+                    }
+
+                    item {
+                        AnimatedVisibility(
+                            visible = isLoading,
+                            enter = fadeIn(animationSpec = tween(350)) + slideInVertically(),
+                            exit = fadeOut(animationSpec = tween(350)) + slideOutVertically()
+                        ) {
+                            ThinkingIndicator(isDarkTheme = isDarkTheme)
+                        }
+
                     }
                 }
             }
-        }
+
     }
 }
 
 @Composable
-private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: String) {
+private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: String,modifier: Modifier = Modifier) {
     val isUserMessage = message.isUser
     val alignment = if (isUserMessage) Alignment.End else Alignment.Start
     val bubbleShape = if (isUserMessage) {
@@ -157,7 +168,7 @@ private fun ChatMessageItem(message: ChatMessage, isDarkTheme: Boolean, theme: S
         )
     ) {
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(
                     start = if (isUserMessage) PaddingExtraLarge else PaddingTiny,

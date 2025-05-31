@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.botchat.database.modelDatabase.modelDao
@@ -28,7 +29,6 @@ private val PaddingTiny = 4.dp
 private val PaddingSmall = 8.dp
 private val PaddingMedium = 12.dp
 private val PaddingLarge = 16.dp
-
 @Composable
 fun ChatScreenContent(
     chatViewModel: ChatViewModel,
@@ -65,14 +65,14 @@ fun ChatScreenContent(
                     width = 0.5.dp,
                     brush = if (isDarkTheme) Brush.linearGradient(listOf(NeonBlue, ElectricCyan)) else Brush.linearGradient(listOf(Aquamarine, Purple40)),
                     shape = RoundedCornerShape(16.dp)
-                ),
-            contentAlignment = Alignment.BottomCenter
+                )
+                //.windowInsetsPadding(WindowInsets.ime), // Handle keyboard insets
+                , contentAlignment = Alignment.BottomCenter
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight()
-                    .padding(bottom = PaddingExtraSmall),
+                    .fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(PaddingExtraSmall)
             ) {
                 TopBar(
@@ -85,12 +85,10 @@ fun ChatScreenContent(
                     theme = selectedTheme,
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth()
-                        .padding(bottom = PaddingLarge * 2 + PaddingMedium), // 40.dp for visibility
+                        .fillMaxWidth(), // No bottom padding
                     isDarkTheme = isDarkTheme
                 )
             }
-
             ChatInputSection(
                 inputText = uiState.inputText,
                 onInputChange = chatViewModel::updateInputText,
@@ -101,14 +99,10 @@ fun ChatScreenContent(
                 useGradientTheme = selectedTheme == "gradient",
                 modifier = Modifier
                     .fillMaxWidth()
-                   // .wrapContentHeight()
-                    .align(Alignment.BottomCenter) // Align first
-                    //.windowInsetsPadding(WindowInsets.ime) // Then apply IME padding
-                    .padding(horizontal = PaddingLarge, vertical = PaddingMedium)
-,
-                        photo_supported = false
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = PaddingLarge, vertical = PaddingLarge), // Small gap above keyboard
+                photo_supported = false
             )
-
             AnimatedVisibility(
                 visible = uiState.showErrorDialog && uiState.errorMessage != null,
                 enter = fadeIn(animationSpec = tween(200)) + scaleIn(
