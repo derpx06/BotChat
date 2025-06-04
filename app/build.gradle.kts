@@ -46,7 +46,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     // Retrofit
     implementation("androidx.compose.material:material-icons-extended:1.7.0") // Or the latest version
-
+    implementation("com.squareup.okhttp3:okhttp:4.12.0") // Replace 4.x.x with the latest version
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
@@ -56,6 +56,10 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation ("androidx.compose.animation:animation:1.5.0")
     //DataStore
+     implementation ("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation ("com.squareup.okhttp3:okhttp-sse:4.12.0")
+    implementation ("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation ("com.google.dagger:hilt-android:2.44")
     implementation ("androidx.hilt:hilt-navigation-compose:1.0.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")

@@ -7,14 +7,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.botchat.database.modelDatabase.modelDao
@@ -24,11 +22,11 @@ import com.example.botchat.ui.theme.*
 import com.example.botchat.viewmodel.Chat.ChatViewModel
 import com.example.botchat.viewmodel.setting.SettingViewModel
 
-// Padding Constants
 private val PaddingTiny = 4.dp
 private val PaddingSmall = 8.dp
 private val PaddingMedium = 12.dp
 private val PaddingLarge = 16.dp
+
 @Composable
 fun ChatScreenContent(
     chatViewModel: ChatViewModel,
@@ -65,9 +63,8 @@ fun ChatScreenContent(
                     width = 0.5.dp,
                     brush = if (isDarkTheme) Brush.linearGradient(listOf(NeonBlue, ElectricCyan)) else Brush.linearGradient(listOf(Aquamarine, Purple40)),
                     shape = RoundedCornerShape(16.dp)
-                )
-                //.windowInsetsPadding(WindowInsets.ime), // Handle keyboard insets
-                , contentAlignment = Alignment.BottomCenter
+                ),
+            contentAlignment = Alignment.BottomCenter
         ) {
             Column(
                 modifier = Modifier
@@ -81,11 +78,13 @@ fun ChatScreenContent(
                 )
                 ChatMessages(
                     messages = uiState.messages,
+                    isOPH = true,
                     isLoading = uiState.isLoading,
                     theme = selectedTheme,
+                    streamingMessage = uiState.streamingMessage,
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth(), // No bottom padding
+                        .fillMaxWidth(),
                     isDarkTheme = isDarkTheme
                 )
             }
@@ -100,7 +99,7 @@ fun ChatScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = PaddingLarge, vertical = PaddingLarge), // Small gap above keyboard
+                    .padding(horizontal = PaddingLarge, vertical = PaddingLarge),
                 photo_supported = false
             )
             AnimatedVisibility(

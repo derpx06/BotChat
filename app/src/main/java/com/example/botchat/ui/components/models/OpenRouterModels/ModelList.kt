@@ -3,10 +3,14 @@ package com.example.botchat.ui.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,7 +19,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -85,18 +91,26 @@ fun ModelCard(
     onModelSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) } // Restored expanded state, default to false (minimized)
     val isFreeModel = model.id.contains(":free", ignoreCase = true)
     val inputType = model.architecture?.inputModalities?.joinToString(", ") ?: "Text"
     val scope = rememberCoroutineScope()
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
 
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .clickable { expanded = !expanded },
+            .clickable(interactionSource = interactionSource, indication = null) { expanded = !expanded } // Restored clickable to toggle expanded state
+            .scale(if (isHovered) 1.02f else 1f) // Restored hover animation
+            .border(
+                width = 0.5.dp,
+                color = if (isDarkTheme) Color(0xFF4A5A5B) else Color(0xFFD1D5DB),
+                shape = RoundedCornerShape(16.dp)
+            ),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = if (isDarkTheme)
                 MaterialTheme.colorScheme.surfaceContainer
@@ -106,6 +120,23 @@ fun ModelCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(
+                    brush = if (isDarkTheme) {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.surfaceContainer,
+                                MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f)
+                            )
+                        )
+                    } else {
+                        Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.surfaceContainerLow,
+                                MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.9f)
+                            )
+                        )
+                    }
+                )
                 .padding(16.dp)
                 .animateContentSize(animationSpec = tween(300, easing = LinearOutSlowInEasing))
         ) {
@@ -132,22 +163,26 @@ fun ModelCard(
                     ) {
                         if (isFreeModel) {
                             Badge(
+                                icon = Icons.Default.Tag,
                                 text = "Free",
                                 color = Color(0xFF4CAF50),
                                 modifier = Modifier.padding(end = 4.dp)
                             )
                         }
                         Badge(
+                            icon = Icons.Default.Input,
                             text = inputType,
                             color = Color(0xFF2196F3)
                         )
                         model.architecture?.modality?.let {
                             Badge(
+                                icon = Icons.Default.Category,
                                 text = it.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() },
                                 color = Color(0xFF9C27B0)
                             )
                         }
                         Badge(
+                            icon = Icons.Default.Memory,
                             text = formatParameters(estimateParameters(model)),
                             color = Color(0xFFF57C00)
                         )
@@ -169,13 +204,6 @@ fun ModelCard(
                             }
                         },
                         icon = Icons.Default.Add,
-                        contentDescription = "Add Model",
-                        modifier = Modifier.size(32.dp)
-                    )
-                    AnimatedIconButton(
-                        onClick = { expanded = !expanded },
-                        icon = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.ArrowDropDown,
-                        contentDescription = if (expanded) "Collapse" else "Expand",
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -199,7 +227,7 @@ fun ModelCard(
                             ExpandedInfoItem(
                                 label = "Model ID",
                                 value = it,
-                                icon = Icons.Default.Info
+                                icon = Icons.Default.Badge
                             )
                         }
                         model.description?.let {
@@ -213,28 +241,28 @@ fun ModelCard(
                             ExpandedInfoItem(
                                 label = "Context Length",
                                 value = "$it tokens",
-                                icon = Icons.Default.Email
+                                icon = Icons.Default.TextFields
                             )
                         }
                         model.architecture?.tokenizer?.let {
                             ExpandedInfoItem(
                                 label = "Tokenizer",
                                 value = it,
-                                icon = Icons.Default.Menu
+                                icon = Icons.Default.Code
                             )
                         }
                         model.pricing?.prompt?.let {
                             ExpandedInfoItem(
                                 label = "Prompt Pricing",
                                 value = it,
-                                icon = Icons.Default.AccountCircle
+                                icon = Icons.Default.AttachMoney
                             )
                         }
                         model.topProvider?.maxCompletionTokens?.let {
                             ExpandedInfoItem(
                                 label = "Max Completion Tokens",
                                 value = it.toString(),
-                                icon = Icons.Default.Create
+                                icon = Icons.Default.Numbers
                             )
                         }
                     }
@@ -248,14 +276,18 @@ fun ModelCard(
 fun AnimatedIconButton(
     onClick: () -> Unit,
     icon: ImageVector,
-    contentDescription: String,
     modifier: Modifier = Modifier
 ) {
     var clicked by remember { mutableStateOf(false) }
     val animatedScale by animateFloatAsState(
-        targetValue = if (clicked) 0.95f else 1f,
+        targetValue = if (clicked) 0.9f else 1f,
         animationSpec = tween(150, easing = LinearOutSlowInEasing),
         label = "iconScale"
+    )
+    val animatedRotation by animateFloatAsState(
+        targetValue = if (clicked) 90f else 0f,
+        animationSpec = tween(150, easing = LinearOutSlowInEasing),
+        label = "iconRotation"
     )
 
     IconButton(
@@ -265,16 +297,22 @@ fun AnimatedIconButton(
         },
         modifier = modifier
             .background(
-                color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(8.dp)
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                shape = CircleShape
+            )
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                shape = CircleShape
             )
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = contentDescription,
+            contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .scale(animatedScale)
+                .rotate(animatedRotation)
                 .size(24.dp)
         )
     }
@@ -335,22 +373,43 @@ fun ExpandedInfoItem(
 
 @Composable
 fun Badge(
+    icon: ImageVector?,
     text: String,
     color: Color,
     modifier: Modifier = Modifier
 ) {
+    val scale by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = tween(300, easing = LinearOutSlowInEasing),
+        label = "badgeScale"
+    )
+
     Surface(
-        modifier = modifier,
+        modifier = modifier
+            .scale(scale),
         shape = RoundedCornerShape(12.dp),
         color = color
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
-            color = Color.White,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(14.dp)
+                )
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }
 
