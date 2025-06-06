@@ -168,6 +168,7 @@
 
         Box(
             modifier = modifier
+                //
                 .fillMaxWidth()
                 .padding(
                     start = if (isUserMessage) PaddingExtraLarge else PaddingTiny,
