@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.botchat.Repository.ChatRepository
 import com.example.botchat.data.UserSettingsDataStore
+import com.example.botchat.database.ChatDao
 import com.example.botchat.database.ChatDatabase
 import com.example.botchat.database.modelDatabase.modelDatabase
 import com.example.botchat.viewmodel.Chat.ChatViewModel

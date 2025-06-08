@@ -3,8 +3,17 @@ package com.example.botchat.ui.components.chat
 import android.annotation.SuppressLint
 import android.os.SystemClock
 import androidx.activity.compose.PredictiveBackHandler
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.calculateTargetValue
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -15,15 +24,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.util.VelocityTracker
@@ -33,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.botchat.database.ChatDao
 import com.example.botchat.database.modelDatabase.modelDao
 import com.example.botchat.ui.theme.*
 import com.example.botchat.viewmodel.Chat.ChatViewModel
@@ -62,7 +73,7 @@ fun ChatDrawer(
 
         suspend fun closeDrawer(velocity: Float = 0f) {
             translationX.animateTo(
-                0f,
+                targetValue = 0f,
                 animationSpec = spring(stiffness = Spring.StiffnessMedium, dampingRatio = 0.6f),
                 initialVelocity = velocity
             )
@@ -71,7 +82,7 @@ fun ChatDrawer(
 
         suspend fun openDrawer(velocity: Float = 0f) {
             translationX.animateTo(
-                drawerWidth,
+                targetValue = drawerWidth,
                 animationSpec = spring(stiffness = Spring.StiffnessMedium, dampingRatio = 0.6f),
                 initialVelocity = velocity
             )
@@ -146,14 +157,14 @@ fun ChatDrawer(
                     shadowElevation = 20f
                 }
                 .draggable(
-                    draggableState,
-                    Orientation.Horizontal,
+                    state = draggableState,
+                    orientation = Orientation.Horizontal,
                     onDragStopped = { velocity ->
                         val targetOffsetX = decay.calculateTargetValue(translationX.value, velocity)
                         coroutineScope.launch {
-                            val actualTargetX = if (targetOffsetX > drawerWidth * 0.5) drawerWidth else 0f
+                            val actualTargetX = if (targetOffsetX > drawerWidth * 0.5f) drawerWidth else 0f
                             translationX.animateTo(
-                                actualTargetX,
+                                targetValue = actualTargetX,
                                 animationSpec = spring(stiffness = Spring.StiffnessMedium, dampingRatio = 0.6f),
                                 initialVelocity = velocity
                             )
@@ -167,7 +178,7 @@ fun ChatDrawer(
                 settingViewModel = settingViewModel,
                 onNavigateToModels = onNavigateToModels,
                 onDrawerClicked = ::toggleDrawer,
-                modelDao = modelDao
+                modelDao = modelDao as modelDao
             )
         }
     }
@@ -181,112 +192,160 @@ private fun ChatDrawerContents(
     isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val sessions by chatViewModel.allSessions.collectAsStateWithLifecycle(initialValue = emptyList())
-    Card(
+    Surface(
         modifier = modifier
             .width(DrawerWidth)
             .fillMaxHeight()
-            .shadow(6.dp, RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)),
-        shape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) MidnightBlack.copy(alpha = 0.98f) else CloudWhite.copy(alpha = 0.98f)
-        )
+            .shadow(8.dp, shape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)),
+        color = if (isDarkTheme) Color(0xFF1F1F1F) else Color(0xFFF7F7F7),
+        shape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(20.dp)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = if (isDarkTheme)
-                            listOf(MidnightBlack.copy(alpha = 0.98f), NeonBlue.copy(alpha = 0.05f))
-                        else
-                            listOf(CloudWhite.copy(alpha = 0.98f), Aquamarine.copy(alpha = 0.05f))
-                    )
-                ),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Menu",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    color = if (isDarkTheme) NeonBlue else Aquamarine,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 28.sp
+                text = "Conversations",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isDarkTheme) PureWhite else SlateBlack,
+                    fontSize = 20.sp
                 ),
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Session List
+            val sessions by chatViewModel.allSessions.collectAsStateWithLifecycle(initialValue = emptyList())
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(sessions) { session ->
-                    Text(
-                        text = session.title,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (isDarkTheme) PureWhite else SlateBlack,
-                            fontSize = 16.sp
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(
-                                if (session.sessionId == chatViewModel.uiState.value.currentSessionId)
-                                    if (isDarkTheme) NeonBlue.copy(alpha = 0.3f) else Aquamarine.copy(alpha = 0.3f)
-                                else Color.Transparent
-                            )
-                            .padding(12.dp)
-                            .clickable {
-                                chatViewModel.loadSession(session.sessionId)
-                                onScreenSelected(Screen.Chat)
+                items(
+                    items = sessions,
+                    key = { it.sessionId }
+                ) { session ->
+                    SwipeToDismissBox(
+                        state = rememberSwipeToDismissBoxState(
+                            confirmValueChange = { value ->
+                                if (value == SwipeToDismissBoxValue.EndToStart) {
+                                    chatViewModel.deleteSession(session.sessionId)
+                                    true
+                                } else {
+                                    false
+                                }
                             }
+                        ),
+                        backgroundContent = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color(0xFFF44336))
+                                    .padding(16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = Color.White,
+                                    modifier = Modifier.align(Alignment.CenterEnd)
+                                )
+                            }
+                        },
+                        content = {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp)),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (session.sessionId == chatViewModel.uiState.value.currentSessionId)
+                                        if (isDarkTheme) Color(0xFF2A2A2A) else Color(0xFFE0E0E0)
+                                    else if (isDarkTheme) Color(0xFF1F1F1F) else Color.White
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            chatViewModel.loadSession(session.sessionId)
+                                            onScreenSelected(Screen.Chat)
+                                        }
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = session.title,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = if (isDarkTheme) PureWhite else SlateBlack,
+                                            fontSize = 16.sp
+                                        ),
+                                        maxLines = 1,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    IconButton(
+                                        onClick = {
+                                            chatViewModel.deleteSession(session.sessionId)
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Delete Session",
+                                            tint = if (isDarkTheme) Color(0xFFB0BEC5) else Color(0xFF607D8B)
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        enableDismissFromStartToEnd = false,
+                        enableDismissFromEndToStart = true
                     )
                 }
             }
 
-            // New Chat and Icon Buttons
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            // Action Buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
+                TextButton(
                     onClick = {
-                        chatViewModel.startNewChat()
-                        onScreenSelected(Screen.Chat)
+                        chatViewModel.clearMessages()
+                        onScreenSelected(Screen.ClearChat)
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isDarkTheme) NeonBlue else Aquamarine
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color(0xFFF44336)
                     )
                 ) {
-                    Text("New Chat", color = if (isDarkTheme) MidnightBlack else CloudWhite)
+                    Text("Clear All History", style = MaterialTheme.typography.labelMedium)
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
+                Row {
+                    IconButton(onClick = {
+                        chatViewModel.startNewChat()
+                        onScreenSelected(Screen.Chat)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "New Chat",
+                            tint = if (isDarkTheme) PrimaryBlue else Aquamarine
+                        )
+                    }
                     IconButton(onClick = { onScreenSelected(Screen.Settings) }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
-                            tint = if (isDarkTheme) NeonBlue else Aquamarine
+                            tint = if (isDarkTheme) PrimaryBlue else Aquamarine
                         )
                     }
                     IconButton(onClick = { onScreenSelected(Screen.Models) }) {
                         Icon(
-                            imageVector = Icons.Default.Settings, // Placeholder; replace with Models icon if available
+                            imageVector = Icons.Default.Settings, // TODO: Replace with appropriate Models icon
                             contentDescription = "Models",
-                            tint = if (isDarkTheme) NeonBlue else Aquamarine
-                        )
-                    }
-                    IconButton(onClick = { onScreenSelected(Screen.ClearChat) }) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear Chat",
-                            tint = if (isDarkTheme) NeonBlue else Aquamarine
+                            tint = if (isDarkTheme) PrimaryBlue else Aquamarine
                         )
                     }
                 }
@@ -300,11 +359,11 @@ private enum class DrawerState {
     Closed
 }
 
-private enum class Screen(val text: String) {
-    Chat("Chat"),
-    Settings("Settings"),
-    Models("Models"),
-    ClearChat("Clear Chat")
+private enum class Screen {
+    Chat,
+    Settings,
+    Models,
+    ClearChat
 }
 
-private val DrawerWidth = 300.dp
+private val DrawerWidth = 280.dp

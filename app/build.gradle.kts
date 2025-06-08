@@ -67,6 +67,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation ("io.coil-kt:coil-compose:2.4.0")
     // Secure Storage
+    implementation ("androidx.compose.animation:animation:1.7.0")
     implementation ("androidx.security:security-crypto:1.1.0-alpha06")
     // Add Accompanist for ModalBottomSheetLayout
     implementation ("com.google.accompanist:accompanist-navigation-material:0.31.2-alpha")

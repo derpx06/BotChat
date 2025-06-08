@@ -10,7 +10,6 @@ import com.example.botchat.data.OpenRouterRequest
 import com.example.botchat.data.UserSettingsDataStore
 import com.example.botchat.database.ChatMessage
 import com.example.botchat.database.ChatSession
-import com.example.botchat.Repository.ChatRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.botchat.Repository.ChatRepository
 import kotlinx.coroutines.flow.Flow
 import java.io.IOException
 import java.net.UnknownHostException
@@ -46,9 +46,9 @@ class ChatViewModel(
     private var streamingJob: Job? = null
     private val _messagesFlow = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messagesFlow: StateFlow<List<ChatMessage>> = _messagesFlow.asStateFlow()
+    private var pendingSessionId: Long? = null // Track session to save only after message
 
     init {
-        startNewSession()
         viewModelScope.launch {
             _uiState.collect { state ->
                 chatRepository.getMessagesBySession(state.currentSessionId).collect { messages ->
@@ -61,15 +61,9 @@ class ChatViewModel(
     }
 
     private fun startNewSession() {
-        viewModelScope.launch {
-            val session = ChatSession()
-            val sessionId = chatRepository.insertChatSession(session)
-            Log.d("ChatViewModel", "New session created with ID: $sessionId")
-            _uiState.update { it.copy(currentSessionId = sessionId, messages = emptyList(), streamingMessage = "") }
-            _messagesFlow.value = emptyList()
-            val messages = chatRepository.getMessagesBySession(sessionId).first()
-            Log.d("ChatViewModel", "Initial messages for session $sessionId: ${messages.size}")
-        }
+        Log.d("ChatViewModel", "Preparing new session, not saving yet")
+        _uiState.update { it.copy(currentSessionId = 0L, messages = emptyList(), streamingMessage = "") }
+        _messagesFlow.value = emptyList()
     }
 
     fun loadSession(sessionId: Long) {
@@ -80,6 +74,16 @@ class ChatViewModel(
             Log.d("ChatViewModel", "Messages for session $sessionId: ${messages.size}, Contents: ${messages.map { it.content }}")
             _messagesFlow.value = messages
             _uiState.update { it.copy(messages = messages) }
+        }
+    }
+
+    fun deleteSession(sessionId: Long) {
+        viewModelScope.launch {
+            Log.d("ChatViewModel", "Deleting session with ID: $sessionId")
+            chatRepository.deleteSession(sessionId)
+            if (_uiState.value.currentSessionId == sessionId) {
+                startNewSession()
+            }
         }
     }
 
@@ -102,7 +106,16 @@ class ChatViewModel(
 
         viewModelScope.launch {
             try {
-                val sessionId = _uiState.value.currentSessionId
+                var sessionId = _uiState.value.currentSessionId
+                if (sessionId == 0L) {
+                    // Save new session only when first message is sent
+                    val sessionTitle = inputText.take(50) // Use first 50 chars as title
+                    val session = ChatSession(title = sessionTitle)
+                    sessionId = chatRepository.insertChatSession(session)
+                    Log.d("ChatViewModel", "New session created with ID: $sessionId, Title: $sessionTitle")
+                    _uiState.update { it.copy(currentSessionId = sessionId) }
+                }
+
                 Log.d("ChatViewModel", "Sending message for session $sessionId: $inputText")
                 val userMessage = ChatMessage(content = inputText, isUser = true, sessionId = sessionId)
                 chatRepository.insertChatMessage(userMessage)
@@ -188,7 +201,6 @@ class ChatViewModel(
                                     messages = messagesAfterAssistant
                                 )
                             }
-                            // Force refresh
                             loadSession(sessionId)
                         } catch (e: Exception) {
                             Log.e("ChatViewModel", "Streaming error: ${e.message}", e)
@@ -244,7 +256,6 @@ class ChatViewModel(
                     Log.d("ChatViewModel", "Messages after assistant message for session $sessionId: ${messagesAfterAssistant.size}, Contents: ${messagesAfterAssistant.map { it.content }}")
                     _messagesFlow.value = messagesAfterAssistant
                     _uiState.update { it.copy(isLoading = false, streamingMessage = "", messages = messagesAfterAssistant) }
-                    // Force refresh
                     loadSession(sessionId)
                 }
             } catch (e: UnknownHostException) {
@@ -292,11 +303,9 @@ class ChatViewModel(
 
     fun clearMessages() {
         viewModelScope.launch {
-            Log.d("ChatViewModel", "Clearing messages for session ${_uiState.value.currentSessionId}")
-            chatRepository.deleteMessagesBySession(_uiState.value.currentSessionId)
-            val messages = chatRepository.getMessagesBySession(_uiState.value.currentSessionId).first()
-            _messagesFlow.value = messages
-            _uiState.update { it.copy(messages = messages) }
+            Log.d("ChatViewModel", "Clearing all sessions and messages")
+            chatRepository.deleteAllSessions()
+            startNewSession()
         }
     }
 
