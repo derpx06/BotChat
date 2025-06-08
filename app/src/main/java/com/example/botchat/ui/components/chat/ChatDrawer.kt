@@ -196,12 +196,14 @@ private fun ChatDrawerContents(
         modifier = modifier
             .width(DrawerWidth)
             .fillMaxHeight()
+            .fillMaxWidth(0.5f)
             .shadow(8.dp, shape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)),
         color = if (isDarkTheme) Color(0xFF1F1F1F) else Color(0xFFF7F7F7),
         shape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
     ) {
         Column(
             modifier = Modifier
+                .fillMaxWidth(0.5f)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -307,8 +309,9 @@ private fun ChatDrawerContents(
             // Action Buttons
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(0.5f)
                     .padding(top = 16.dp),
+
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
