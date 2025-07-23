@@ -1,5 +1,6 @@
 package com.example.botchat.ui.components.chat
 
+
 import android.annotation.SuppressLint
 import android.os.SystemClock
 import androidx.activity.compose.PredictiveBackHandler
@@ -24,9 +25,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Create
+import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,6 +53,7 @@ import com.example.botchat.viewmodel.Chat.ChatViewModel
 import com.example.botchat.viewmodel.setting.SettingViewModel
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
+
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -311,7 +315,6 @@ private fun ChatDrawerContents(
                 modifier = Modifier
                     .fillMaxWidth(0.5f)
                     .padding(top = 16.dp),
-
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -324,7 +327,16 @@ private fun ChatDrawerContents(
                         contentColor = Color(0xFFF44336)
                     )
                 ) {
-                    Text("Clear All History", style = MaterialTheme.typography.labelMedium)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.DeleteSweep,
+                            contentDescription = null
+                        )
+                        Text("Clear All", style = MaterialTheme.typography.labelMedium)
+                    }
                 }
                 Row {
                     IconButton(onClick = {
@@ -332,21 +344,21 @@ private fun ChatDrawerContents(
                         onScreenSelected(Screen.Chat)
                     }) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Outlined.Create,
                             contentDescription = "New Chat",
                             tint = if (isDarkTheme) PrimaryBlue else Aquamarine
                         )
                     }
                     IconButton(onClick = { onScreenSelected(Screen.Settings) }) {
                         Icon(
-                            imageVector = Icons.Default.Settings,
+                            imageVector = Icons.Outlined.Settings,
                             contentDescription = "Settings",
                             tint = if (isDarkTheme) PrimaryBlue else Aquamarine
                         )
                     }
                     IconButton(onClick = { onScreenSelected(Screen.Models) }) {
                         Icon(
-                            imageVector = Icons.Default.Settings, // TODO: Replace with appropriate Models icon
+                            imageVector = Icons.Outlined.Psychology,
                             contentDescription = "Models",
                             tint = if (isDarkTheme) PrimaryBlue else Aquamarine
                         )
