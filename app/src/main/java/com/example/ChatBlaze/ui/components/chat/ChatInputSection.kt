@@ -50,7 +50,7 @@ fun ChatInputSection(
     val infiniteTransition = rememberInfiniteTransition(label = "Effects")
     val cursorAlpha by infiniteTransition.animateFloat(
         initialValue = 1.0f,
-        targetValue = 1.3f,
+        targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(800, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse

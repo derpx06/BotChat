@@ -1,11 +1,29 @@
 package com.example.ChatBlaze.ui.components.chat
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -14,13 +32,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -28,13 +50,33 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
-import com.example.ChatBlaze.database.ChatMessage
-import com.example.ChatBlaze.ui.theme.*
+import com.example.ChatBlaze.data.database.ChatMessage
+import com.example.ChatBlaze.ui.theme.AccentIndigo
+import com.example.ChatBlaze.ui.theme.AstralBlue
+import com.example.ChatBlaze.ui.theme.BotChatTheme
+import com.example.ChatBlaze.ui.theme.BottomFadeGradientDark
+import com.example.ChatBlaze.ui.theme.BottomFadeGradientLight
+import com.example.ChatBlaze.ui.theme.ChatBubbleGradientDark
+import com.example.ChatBlaze.ui.theme.ChatBubbleGradientLight
+import com.example.ChatBlaze.ui.theme.ChatInterfaceGradientDark
+import com.example.ChatBlaze.ui.theme.ChatInterfaceGradientLight
+import com.example.ChatBlaze.ui.theme.CloudWhite
+import com.example.ChatBlaze.ui.theme.CoolGray
+import com.example.ChatBlaze.ui.theme.ElectricCyan
+import com.example.ChatBlaze.ui.theme.GalacticGray
+import com.example.ChatBlaze.ui.theme.MidnightBlack
+import com.example.ChatBlaze.ui.theme.PureWhite
+import com.example.ChatBlaze.ui.theme.ResponseGradientDarkMode
+import com.example.ChatBlaze.ui.theme.ResponseGradientLightMode
+import com.example.ChatBlaze.ui.theme.SapphireBlue
+import com.example.ChatBlaze.ui.theme.SlateBlack
+import com.example.ChatBlaze.ui.theme.TopBarUnderlineDark
+import com.example.ChatBlaze.ui.theme.TopBarUnderlineLight
 import kotlinx.coroutines.launch
 
 // Main composable for displaying the chat interface
+@OptIn(ExperimentalFoundationApi::class) // Added for animateItemPlacement
 @Composable
 fun ChatMessages(
     messages: List<ChatMessage>,
@@ -70,6 +112,7 @@ fun ChatMessages(
                         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                         alpha = 0.95f
                     )
+
                     else -> Modifier.background(
                         color = if (isDarkTheme) MidnightBlack else CloudWhite,
                         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
@@ -92,6 +135,7 @@ fun ChatMessages(
                 ),
                 modifier = Modifier.align(Alignment.Center)
             )
+
             messages.isEmpty() && !isLoading && streamingMessage.isEmpty() -> Text(
                 text = "Start a conversation",
                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -100,6 +144,7 @@ fun ChatMessages(
                 ),
                 modifier = Modifier.align(Alignment.Center)
             )
+
             else -> LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -113,9 +158,8 @@ fun ChatMessages(
                         message = message,
                         isDarkTheme = isDarkTheme,
                         theme = theme,
-                        modifier = Modifier.animateItem(
-                            fadeInSpec = tween(300),
-                            placementSpec = tween(300)
+                        modifier = Modifier.animateItemPlacement(
+                            animationSpec = tween(durationMillis = 300)
                         )
                     )
                 }
@@ -127,9 +171,8 @@ fun ChatMessages(
                             isDarkTheme = isDarkTheme,
                             theme = theme,
                             onPauseGeneration = onPauseGeneration,
-                            modifier = Modifier.animateItem(
-                                fadeInSpec = tween(300),
-                                placementSpec = tween(300)
+                            modifier = Modifier.animateItemPlacement(
+                                animationSpec = tween(durationMillis = 300)
                             )
                         )
                     }
@@ -178,9 +221,13 @@ private fun ChatMessageItem(
                             brush = if (isDarkTheme) ChatBubbleGradientDark else ChatBubbleGradientLight,
                             alpha = 0.9f
                         )
+
                         isUserMessage -> Modifier.background(
-                            color = if (isDarkTheme) AstralBlue.copy(alpha = 0.9f) else AccentIndigo.copy(alpha = 0.9f)
+                            color = if (isDarkTheme) AstralBlue.copy(alpha = 0.9f) else AccentIndigo.copy(
+                                alpha = 0.9f
+                            )
                         )
+
                         else -> Modifier.background(
                             brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                             alpha = 0.92f
@@ -194,7 +241,10 @@ private fun ChatMessageItem(
                 )
                 .padding(horizontal = PaddingLarge, vertical = PaddingMedium)
         ) {
-            val annotatedText = if (!isUserMessage) parseResponse(message.content, isDarkTheme) else AnnotatedString(message.content)
+            val annotatedText =
+                if (!isUserMessage) parseResponse(message.content, isDarkTheme) else AnnotatedString(
+                    message.content
+                )
             Text(
                 text = annotatedText,
                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -220,7 +270,8 @@ private fun ModelResponseItem(
     onPauseGeneration: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val bubbleShape = RoundedCornerShape(topStart = 10.dp, topEnd = 20.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
+    val bubbleShape =
+        RoundedCornerShape(topStart = 10.dp, topEnd = 20.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
 
     BoxWithConstraints(
         modifier = modifier
@@ -230,7 +281,7 @@ private fun ModelResponseItem(
     ) {
         Column(
             modifier = Modifier
-                .widthIn(max =this.maxWidth * 0.7f)
+                .widthIn(max = this.maxWidth * 0.7f)
                 .clip(bubbleShape)
                 .background(
                     brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
@@ -359,6 +410,7 @@ private fun parseResponse(text: String, isDarkTheme: Boolean): AnnotatedString {
                 )
                 currentIndex += headerText.length
             }
+
             trimmedLine.startsWith("## ") -> {
                 val subheaderText = trimmedLine.substring(3).trim() + "\n"
                 builder.append(subheaderText)
@@ -373,6 +425,7 @@ private fun parseResponse(text: String, isDarkTheme: Boolean): AnnotatedString {
                 )
                 currentIndex += subheaderText.length
             }
+
             else -> {
                 var lineText = trimmedLine
                 var lastIndex = 0
@@ -433,7 +486,13 @@ private val PaddingExtraLarge = 24.dp
 fun ChatMessageItemUserLightPreview() {
     BotChatTheme(darkTheme = false) {
         ChatMessageItem(
-            message = ChatMessage(id = 1, content = "Hello, this is a user message.", isUser = true, timestamp = System.currentTimeMillis(), sessionId = 1L),
+            message = ChatMessage(
+                id = 1,
+                content = "Hello, this is a user message.",
+                isUser = true,
+                timestamp = System.currentTimeMillis(),
+                sessionId = 1L
+            ),
             isDarkTheme = false,
             theme = "default"
         )
@@ -445,7 +504,13 @@ fun ChatMessageItemUserLightPreview() {
 fun ChatMessageItemUserDarkPreview() {
     BotChatTheme(darkTheme = true) {
         ChatMessageItem(
-            message = ChatMessage(id = 1, content = "Hello, this is a user message in dark mode.", isUser = true, timestamp = System.currentTimeMillis(), sessionId = 1L),
+            message = ChatMessage(
+                id = 1,
+                content = "Hello, this is a user message in dark mode.",
+                isUser = true,
+                timestamp = System.currentTimeMillis(),
+                sessionId = 1L
+            ),
             isDarkTheme = true,
             theme = "default"
         )
@@ -457,7 +522,13 @@ fun ChatMessageItemUserDarkPreview() {
 fun ChatMessageItemModelLightPreview() {
     BotChatTheme(darkTheme = false) {
         ChatMessageItem(
-            message = ChatMessage(id = 2, content = "Hi there! I'm the model.\n# Header\n**Bold** and _italic_.", isUser = false, timestamp = System.currentTimeMillis(), sessionId = 1L),
+            message = ChatMessage(
+                id = 2,
+                content = "Hi there! I'm the model.\n# Header\n**Bold** and _italic_.",
+                isUser = false,
+                timestamp = System.currentTimeMillis(),
+                sessionId = 1L
+            ),
             isDarkTheme = false,
             theme = "default"
         )
@@ -469,7 +540,13 @@ fun ChatMessageItemModelLightPreview() {
 fun ChatMessageItemModelDarkPreview() {
     BotChatTheme(darkTheme = true) {
         ChatMessageItem(
-            message = ChatMessage(id = 2, content = "Hi there! I'm the model in dark mode.", isUser = false, timestamp = System.currentTimeMillis(), sessionId = 1L),
+            message = ChatMessage(
+                id = 2,
+                content = "Hi there! I'm the model in dark mode.",
+                isUser = false,
+                timestamp = System.currentTimeMillis(),
+                sessionId = 1L
+            ),
             isDarkTheme = true,
             theme = "default"
         )
@@ -568,13 +645,30 @@ fun ChatMessagesHiddenDarkPreview() {
     }
 }
 
-@Preview(name = "Chat Messages - With Content - Light", showBackground = true, widthDp = 360, heightDp = 640)
+@Preview(
+    name = "Chat Messages - With Content - Light",
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 640
+)
 @Composable
 fun ChatMessagesWithContentLightPreview() {
     BotChatTheme(darkTheme = false) {
         val sampleMessages = listOf(
-            ChatMessage(id = 1, content = "Hello!", isUser = true, timestamp = System.currentTimeMillis() - 2000, sessionId = 1L),
-            ChatMessage(id = 2, content = "Hi there!", isUser = false, timestamp = System.currentTimeMillis() - 1000, sessionId = 1L)
+            ChatMessage(
+                id = 1,
+                content = "Hello!",
+                isUser = true,
+                timestamp = System.currentTimeMillis() - 2000,
+                sessionId = 1L
+            ),
+            ChatMessage(
+                id = 2,
+                content = "Hi there!",
+                isUser = false,
+                timestamp = System.currentTimeMillis() - 1000,
+                sessionId = 1L
+            )
         )
         ChatMessages(
             messages = sampleMessages,
@@ -592,7 +686,13 @@ fun ChatMessagesWithContentLightPreview() {
 fun ChatMessagesLoadingDarkPreview() {
     BotChatTheme(darkTheme = true) {
         val sampleMessages = listOf(
-            ChatMessage(id = 1, content = "Question?", isUser = true, timestamp = System.currentTimeMillis() - 1000, sessionId = 1L)
+            ChatMessage(
+                id = 1,
+                content = "Question?",
+                isUser = true,
+                timestamp = System.currentTimeMillis() - 1000,
+                sessionId = 1L
+            )
         )
         ChatMessages(
             messages = sampleMessages,
@@ -610,7 +710,13 @@ fun ChatMessagesLoadingDarkPreview() {
 fun ChatMessagesStreamingDarkPreview() {
     BotChatTheme(darkTheme = true) {
         val sampleMessages = listOf(
-            ChatMessage(id = 1, content = "What is Kotlin?", isUser = true, timestamp = System.currentTimeMillis() - 1000, sessionId = 1L)
+            ChatMessage(
+                id = 1,
+                content = "What is Kotlin?",
+                isUser = true,
+                timestamp = System.currentTimeMillis() - 1000,
+                sessionId = 1L
+            )
         )
         ChatMessages(
             messages = sampleMessages,

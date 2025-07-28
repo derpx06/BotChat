@@ -26,12 +26,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ChatBlaze.database.modelDatabase.SelectedModel
-import com.example.ChatBlaze.database.modelDatabase.modelDao
+import com.example.ChatBlaze.data.database.modelDatabase.SelectedModel
+import com.example.ChatBlaze.data.database.modelDatabase.modelDao
 import com.example.ChatBlaze.ui.theme.MidnightBlack
 import com.example.ChatBlaze.ui.theme.PureWhite
 import com.example.ChatBlaze.ui.theme.SlateBlack
-import com.example.ChatBlaze.viewmodel.setting.SettingViewModel
+import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 

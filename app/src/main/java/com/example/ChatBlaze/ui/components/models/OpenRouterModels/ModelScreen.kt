@@ -1,21 +1,69 @@
 package com.example.ChatBlaze.ui.components
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -27,13 +75,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ChatBlaze.data.UserSettingsDataStore
-import com.example.ChatBlaze.database.modelDatabase.modelDao
+import com.example.ChatBlaze.data.database.modelDatabase.modelDao
+import com.example.ChatBlaze.data.model.UserSettingsDataStore
 import com.example.ChatBlaze.ui.theme.CloudWhite
 import com.example.ChatBlaze.ui.theme.MidnightBlack
-import com.example.ChatBlaze.viewmodel.openrouterModels.ModelUIState
-import com.example.ChatBlaze.viewmodel.openrouterModels.ModelViewModel
-import com.example.ChatBlaze.viewmodel.setting.SettingViewModel
+import com.example.ChatBlaze.ui.viewmodel.openrouterModels.ModelUIState
+import com.example.ChatBlaze.ui.viewmodel.openrouterModels.ModelViewModel
+import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -308,9 +356,10 @@ fun SortByDropdown(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShimmerList(innerPadding: PaddingValues) {
-    val transition = rememberInfiniteTransition()
+    val transition = rememberInfiniteTransition(label = "shimmerTransition")
     val shimmerTranslate by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1000f,
@@ -341,11 +390,13 @@ fun ShimmerList(innerPadding: PaddingValues) {
                                 MaterialTheme.colorScheme.surfaceContainerHigh,
                                 MaterialTheme.colorScheme.surfaceContainer
                             ),
-                            start = androidx.compose.ui.geometry.Offset(shimmerTranslate, 0f),
-                            end = androidx.compose.ui.geometry.Offset(shimmerTranslate + 1000f, 0f)
+                            start = Offset(shimmerTranslate, 0f),
+                            end = Offset(shimmerTranslate + 1000f, 0f)
                         )
                     )
-                    .animateItem(fadeInSpec = tween(400, easing = LinearOutSlowInEasing))
+                    .animateItemPlacement(
+                        animationSpec = tween(400, easing = LinearOutSlowInEasing)
+                    )
             )
         }
     }
@@ -448,10 +499,10 @@ fun ModelScreen(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             )
-            when (uiState) {
+            when (val currentState = uiState) {
                 is ModelUIState.Loading -> ShimmerList(innerPadding = innerPadding)
                 is ModelUIState.Success -> {
-                    val filteredModels = (uiState as ModelUIState.Success).models
+                    val filteredModels = currentState.models
                         .filter { model ->
                             val matchesSearch = model.name.contains(searchQuery, ignoreCase = true) ||
                                     model.id.contains(searchQuery, ignoreCase = true)
@@ -499,7 +550,7 @@ fun ModelScreen(
                     )
                 }
                 is ModelUIState.Error -> ErrorScreen(
-                    message = (uiState as ModelUIState.Error).message,
+                    message = currentState.message,
                     onRetry = { modelViewModel.retry() }
                 )
             }

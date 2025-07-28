@@ -4,14 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ChatBlaze.Repository.ChatRepository
-import com.example.ChatBlaze.data.UserSettingsDataStore
-import com.example.ChatBlaze.database.ChatDatabase
-import com.example.ChatBlaze.database.modelDatabase.modelDatabase
-import com.example.ChatBlaze.viewmodel.Chat.ChatViewModel
-import com.example.ChatBlaze.viewmodel.Chat.ChatViewModelFactory
-import com.example.ChatBlaze.viewmodel.setting.SettingViewModel
-import com.example.ChatBlaze.viewmodel.setting.SettingViewModelFactory
+import com.example.ChatBlaze.data.repository.ChatRepository
+import com.example.ChatBlaze.data.model.UserSettingsDataStore
+import com.example.ChatBlaze.data.database.ChatDatabase
+import com.example.ChatBlaze.data.database.modelDatabase.modelDatabase
+import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModel
+import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModelFactory
+import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
+import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModelFactory
 
 @Composable
 fun ChatScreen(

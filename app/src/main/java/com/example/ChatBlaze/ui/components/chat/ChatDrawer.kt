@@ -8,7 +8,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -23,7 +22,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.util.VelocityTracker
@@ -33,9 +31,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.fontscaling.MathUtils.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ChatBlaze.database.modelDatabase.modelDao
-import com.example.ChatBlaze.viewmodel.Chat.ChatViewModel
-import com.example.ChatBlaze.viewmodel.setting.SettingViewModel
+import com.example.ChatBlaze.data.database.modelDatabase.modelDao
+import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModel
+import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -43,7 +41,7 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private enum class DrawerState { Open, Closed }
 private enum class Screen { Chat, Settings, Models, ClearChat }
-private val DrawerWidth = 300.dp // Increased width for better spacing
+private val DrawerWidth = 300.dp
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -66,7 +64,6 @@ fun ChatDrawer(
 
         translationX.updateBounds(0f, drawerWidthPx)
 
-        // --- DRAWER ANIMATION LOGIC ---
         suspend fun closeDrawer(velocity: Float = 0f) {
             translationX.animateTo(
                 targetValue = 0f,
@@ -91,7 +88,6 @@ fun ChatDrawer(
             }
         }
 
-        // --- PREDICTIVE BACK HANDLER ---
         val velocityTracker = remember { VelocityTracker() }
         PredictiveBackHandler(drawerState.value == DrawerState.Open) { progress ->
             try {
@@ -111,7 +107,6 @@ fun ChatDrawer(
         }
 
 
-        // --- UI LAYOUT ---
         ChatDrawerContents(
             chatViewModel = chatViewModel,
             onScreenSelected = { screen ->
@@ -119,7 +114,7 @@ fun ChatDrawer(
                     Screen.Settings -> settingViewModel.toggleSettings()
                     Screen.Models -> onNavigateToModels()
                     Screen.ClearChat -> chatViewModel.clearMessages()
-                    Screen.Chat -> {} // Handled by item clicks
+                    Screen.Chat -> {}
                 }
                 coroutineScope.launch { closeDrawer() }
             }
@@ -160,7 +155,6 @@ fun ChatDrawer(
                     }
                 )
         ) {
-            // Added a placeholder for ChatScreenContent to resolve the error
             ChatScreenContent(
                 chatViewModel = chatViewModel,
                 settingViewModel = settingViewModel,
@@ -192,14 +186,12 @@ private fun ChatDrawerContents(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // --- HEADER ---
             Text(
                 text = "Conversations",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(bottom = 16.dp, start = 8.dp)
             )
 
-            // --- CONVERSATION LIST ---
             val sessions by chatViewModel.allSessions.collectAsStateWithLifecycle(initialValue = emptyList())
             LazyColumn(
                 modifier = Modifier.weight(1f),
@@ -255,12 +247,10 @@ private fun ChatDrawerContents(
                 }
             }
 
-            // --- SPACER & DIVIDER ---
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(8.dp))
 
-            // --- ACTION BUTTONS ---
             DrawerActionItem(
                 label = "New Chat",
                 icon = Icons.Outlined.AddComment,

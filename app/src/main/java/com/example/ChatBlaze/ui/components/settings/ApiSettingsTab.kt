@@ -18,9 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ChatBlaze.database.modelDatabase.modelDao
+import com.example.ChatBlaze.data.database.modelDatabase.modelDao
 import com.example.ChatBlaze.ui.theme.Transparent
-import com.example.ChatBlaze.viewmodel.setting.SettingViewModel
+import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 
 @Composable
 fun ApiSettingsTab(

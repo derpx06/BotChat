@@ -15,12 +15,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ChatBlaze.database.modelDatabase.modelDao
+import com.example.ChatBlaze.data.database.modelDatabase.modelDao
 import com.example.ChatBlaze.ui.components.TopBar
 import com.example.ChatBlaze.ui.components.settings.SettingsSheetBottom
 import com.example.ChatBlaze.ui.theme.*
-import com.example.ChatBlaze.viewmodel.Chat.ChatViewModel
-import com.example.ChatBlaze.viewmodel.setting.SettingViewModel
+import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModel
+import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 
 private val PaddingTiny = 4.dp
 private val PaddingSmall = 8.dp
