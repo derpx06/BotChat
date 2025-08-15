@@ -4,4 +4,6 @@ import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class ChatBlazeApplication : Application()
+class ChatBlazeApplication : Application() {
+
+}

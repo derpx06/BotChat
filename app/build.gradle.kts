@@ -88,7 +88,6 @@ dependencies {
     implementation(libs.androidx.security.crypto)
 
     // Markdown Rendering
-    implementation("com.github.jeziellago:compose-markdown:0.4.0")
 
     // Testing
     testImplementation(libs.junit)

@@ -171,7 +171,7 @@ class ChatViewModel(
                         val request = OpenRouterRequest(
                             model = model,
                             messages = listOf(OpenRouterMessage(role = "user", content = inputText)),
-                            maxTokens = 1000,
+                            maxTokens = 5000,
                             stream = true,
                             temperature = 0.7
                         )
