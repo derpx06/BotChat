@@ -66,13 +66,13 @@ fun ChatInputSection(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 1.dp, vertical = 15.dp),
-        shape = RoundedCornerShape(52.dp),
-        color = Color.Transparent,
-        shadowElevation = 20.dp
+        shape = RoundedCornerShape(22.dp),
+        color = Color.Transparent
+       // shadowElevation = 20.dp
     ) {
         Box(
             modifier = Modifier
-
+                .background(Color.Black.copy(alpha = 0.2f))
         ) {
             Row(
                 modifier = Modifier.padding(5.dp) ,
@@ -89,108 +89,119 @@ fun ChatInputSection(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add Attachment",
-                        tint = iconColor
+                        tint = iconColor.copy(alpha = 01f)
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(textFieldBackgroundColor)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(textFieldBackgroundColor)
                     ) {
-                        BasicTextField(
-                            value = inputText,
-                            onValueChange = onInputChange,
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(vertical = 12.dp)
-                                .heightIn(min = 25.dp, max = 120.dp),
-                            textStyle = TextStyle(
-                                color = textColor,
-                                fontSize = 17.sp
-                            ),
-                            cursorBrush = SolidColor(sendButtonActiveColor),
-                            decorationBox = { innerTextField ->
-                                Box(contentAlignment = Alignment.CenterStart) {
-                                    if (inputText.isEmpty()) {
-                                        Text(
-                                            "Enter your message…",
-                                            color = placeholderColor,
-                                            fontSize = 17.sp
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            }
-                        )
-                        AnimatedVisibility(
-                            visible = inputText.isNotEmpty(),
-                            enter = fadeIn() + scaleIn(),
-                            exit = fadeOut() + scaleOut()
+                        Row(
+                            modifier = Modifier.padding(horizontal = 9.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Clear Text",
-                                tint = iconColor,
+                            BasicTextField(
+                                value = inputText,
+                                onValueChange = onInputChange,
                                 modifier = Modifier
-                                    .size(20.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isDarkTheme) Color.Gray.copy(alpha = 0.3f) else Color.Gray.copy(alpha = 0.2f))
-                                    .padding(2.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        onClick = { onInputChange("") }
-                                    )
+                                    .weight(1f)
+                                    .padding(vertical = 10.dp)
+                                    .heightIn(min = 25.dp, max = 120.dp),
+                                textStyle = TextStyle(
+                                    color = textColor,
+                                    fontSize = 17.sp
+                                ),
+                                cursorBrush = SolidColor(sendButtonActiveColor),
+                                decorationBox = { innerTextField ->
+                                    Box(contentAlignment = Alignment.CenterStart) {
+                                        if (inputText.isEmpty()) {
+                                            Text(
+                                                "Enter your message…",
+                                                color = placeholderColor,
+                                                fontSize = 17.sp
+                                            )
+                                        }
+                                        innerTextField()
+                                    }
+                                }
                             )
+                            AnimatedVisibility(
+                                visible = inputText.isNotEmpty(),
+                                enter = fadeIn() + scaleIn(),
+                                exit = fadeOut() + scaleOut()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear Text",
+                                    tint = iconColor,
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (isDarkTheme) Color.Gray.copy(alpha = 0.3f) else Color.Gray.copy(
+                                                alpha = 0.2f
+                                            )
+                                        )
+                                        .padding(2.dp)
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = { onInputChange("") }
+                                        )
+                                )
+                            }
                         }
                     }
-                }
-                IconButton(
-                    onClick = if (isLoading) onStopClick else onSendClick,
-                    enabled = sendEnabled || isLoading,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(
-                            brush = Brush.linearGradient(
-                                if (sendEnabled || isLoading)
-                                    listOf(sendButtonActiveColor, sendButtonActiveColor.copy(alpha = 0.85f))
-                                else
-                                    listOf(sendButtonInactiveColor, sendButtonInactiveColor)
+                Column {
+                    IconButton(
+                        onClick = if (isLoading) onStopClick else onSendClick,
+                        enabled = sendEnabled || isLoading,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(
+                                brush = Brush.linearGradient(
+                                    if (sendEnabled || isLoading)
+                                        listOf(
+                                            sendButtonActiveColor,
+                                            sendButtonActiveColor.copy(alpha = 0.85f)
+                                        )
+                                    else
+                                        listOf(sendButtonInactiveColor, sendButtonInactiveColor)
+                                )
                             )
-                        )
-                ) {
-                    AnimatedContent(
-                        targetState = Pair(isLoading, inputText.isNotBlank()),
-                        transitionSpec = {
-                            (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium)) { it } + fadeIn() with
-                                    slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium)) { -it } + fadeOut())
-                                .using(SizeTransform(clip = false))
-                        },
-                        label = "SendButtonAnimation"
-                    ) { (loading, hasText) ->
-                        when {
-                            loading -> CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Color.White,
-                                strokeWidth = 2.5.dp
-                            )
-                            hasText -> Icon(
-                                imageVector = Icons.Rounded.Send,
-                                contentDescription = "Send",
-                                tint = Color.White,
-                                modifier = Modifier.offset(x = (-2).dp)
-                            )
-                            else -> Icon(
-                                imageVector = Icons.Rounded.Send,
-                                contentDescription = "Send",
-                                tint = if (isDarkTheme) Color(0xFF6E6E72) else Color(0xFFBDBDC2)
-                            )
+                    ) {
+                        AnimatedContent(
+                            targetState = Pair(isLoading, inputText.isNotBlank()),
+                            transitionSpec = {
+                                (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium)) { it } + fadeIn() with
+                                        slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium)) { -it } + fadeOut())
+                                    .using(SizeTransform(clip = false))
+                            },
+                            label = "SendButtonAnimation"
+                        ) { (loading, hasText) ->
+                            when {
+                                loading -> CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.5.dp
+                                )
+
+                                hasText -> Icon(
+                                    imageVector = Icons.Rounded.Send,
+                                    contentDescription = "Send",
+                                    tint = Color.White,
+                                    modifier = Modifier.offset(x = (-2).dp)
+                                )
+
+                                else -> Icon(
+                                    imageVector = Icons.Rounded.Send,
+                                    contentDescription = "Send",
+                                    tint = if (isDarkTheme) Color(0xFF6E6E72) else Color(0xFFBDBDC2)
+                                )
+                            }
                         }
                     }
                 }

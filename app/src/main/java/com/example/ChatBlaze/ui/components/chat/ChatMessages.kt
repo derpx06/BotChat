@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import com.example.ChatBlaze.data.database.ChatMessage
 import com.example.ChatBlaze.ui.theme.AccentIndigo
 import com.example.ChatBlaze.ui.theme.AstralBlue
+import com.example.ChatBlaze.ui.theme.Black
 import com.example.ChatBlaze.ui.theme.BotChatTheme
 import com.example.ChatBlaze.ui.theme.BottomFadeGradientDark
 import com.example.ChatBlaze.ui.theme.BottomFadeGradientLight
@@ -80,6 +81,7 @@ import com.example.ChatBlaze.ui.theme.CoolGray
 import com.example.ChatBlaze.ui.theme.ElectricCyan
 import com.example.ChatBlaze.ui.theme.GalacticGray
 import com.example.ChatBlaze.ui.theme.MidnightBlack
+import com.example.ChatBlaze.ui.theme.OnyxBlack
 import com.example.ChatBlaze.ui.theme.PureWhite
 import com.example.ChatBlaze.ui.theme.ResponseGradientDarkMode
 import com.example.ChatBlaze.ui.theme.ResponseGradientLightMode
@@ -87,6 +89,7 @@ import com.example.ChatBlaze.ui.theme.SapphireBlue
 import com.example.ChatBlaze.ui.theme.SlateBlack
 import com.example.ChatBlaze.ui.theme.TopBarUnderlineDark
 import com.example.ChatBlaze.ui.theme.TopBarUnderlineLight
+import com.example.ChatBlaze.ui.theme.WhiteTranslucent
 import kotlinx.coroutines.launch
 
 private sealed class ParsedContent {
@@ -141,7 +144,7 @@ fun ChatMessages(
                 brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
             )
-            .padding(PaddingLarge)
+            .padding(PaddingTiny)
     ) {
 
 
@@ -170,7 +173,7 @@ fun ChatMessages(
                     .padding(horizontal = PaddingMedium),
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(PaddingLarge),
-                contentPadding = PaddingValues(bottom = PaddingExtraLarge)
+                contentPadding = PaddingValues(bottom = paddingUltraLarge, top = PaddingMedium)
             ) {
                 items(messages, key = { it.id }) { message ->
                     ChatMessageItem(
@@ -224,7 +227,7 @@ private fun ChatMessageItem(
         ) {
             Box(
                 modifier = Modifier
-                    .padding(start = maxWidth * 0.12f)
+                    .padding(start = maxWidth * 0.02f)
                     .align(Alignment.CenterEnd)
                     .clip(bubbleShape)
                     .then(
@@ -271,19 +274,19 @@ private fun ChatMessageItem(
 
         Row(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
+            horizontalArrangement = Arrangement.spacedBy(PaddingExtraSmall)
         ) {
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = PaddingSmall)
+                    .padding(end = PaddingTiny)
                     .clip(bubbleShape)
                     .background(
                         brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
                         alpha = 0.95f
                     )
                     .border(
-                        width = 0.75.dp,
+                        width = 0.55.dp,
                         brush = if (isDarkTheme) BottomFadeGradientDark else BottomFadeGradientLight,
                         shape = bubbleShape
                     )
@@ -363,7 +366,6 @@ private fun ModelResponseItem(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
     ) {
-        AIAvatar(isDarkTheme = isDarkTheme)
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -375,7 +377,7 @@ private fun ModelResponseItem(
                     alpha = 0.95f
                 )
                 .border(
-                    width = 0.75.dp,
+                    width = 0.55.dp,
                     brush = if (isDarkTheme) BottomFadeGradientDark else BottomFadeGradientLight,
                     shape = bubbleShape
                 )
@@ -470,14 +472,14 @@ private fun ThinkingBlock(
             Icon(
                 imageVector = Icons.Filled.Psychology,
                 contentDescription = "Thinking Process",
-                tint = if (isDarkTheme) GalacticGray else CoolGray,
+                tint = if (isDarkTheme) CloudWhite else OnyxBlack,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(Modifier.width(PaddingSmall))
             Text(
                 if (isThinkingVisible) "Hide thought" else "Show thought",
                 fontSize = 12.sp,
-                color = if (isDarkTheme) GalacticGray else CoolGray,
+                color = if (isDarkTheme) CloudWhite else OnyxBlack,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -503,8 +505,9 @@ private fun ThinkingBlock(
             Text(
                 text = thinkingText,
                 style = MaterialTheme.typography.bodySmall.copy(
-                    color = (if (isDarkTheme) CoolGray else GalacticGray).copy(alpha = 0.8f),
+                    color = (if (isDarkTheme) WhiteTranslucent else OnyxBlack).copy(alpha = 0.8f),
                     fontStyle = FontStyle.Italic,
+                    fontSize = 13.sp,
                     lineHeight = 18.sp
                 )
             )
@@ -734,8 +737,8 @@ private fun parseMarkdown(text: String, isDarkTheme: Boolean): AnnotatedString {
                 builder.addStyle(
                     SpanStyle(
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 17.sp, // Adjusted font size
-                        color = mainTextColor // Unified color
+                        fontSize = 17.sp,
+                        color = mainTextColor
                     ),
                     currentIndex,
                     currentIndex + subheaderText.length
@@ -749,7 +752,7 @@ private fun parseMarkdown(text: String, isDarkTheme: Boolean): AnnotatedString {
                 builder.addStyle(
                     SpanStyle(
                         fontStyle = FontStyle.Italic,
-                        color = mainTextColor.copy(alpha = 0.8f) // Unified color with slight alpha change
+                        color = mainTextColor.copy(alpha = 0.8f)
                     ),
                     currentIndex,
                     currentIndex + quoteText.length
@@ -821,6 +824,7 @@ private val PaddingSmall = 8.dp
 private val PaddingMedium = 12.dp
 private val PaddingLarge = 16.dp
 private val PaddingExtraLarge = 24.dp
+private val paddingUltraLarge  = 80.dp
 
 @Preview(name = "Chat Message Item - User - Light", showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
