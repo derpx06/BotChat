@@ -13,9 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ChatBlaze.data.database.modelDatabase.modelDao
+import com.example.ChatBlaze.data.model.UserSettingsDataStore
+import com.example.ChatBlaze.data.repository.ChatRepository
 import com.example.ChatBlaze.ui.components.TopBar
 import com.example.ChatBlaze.ui.components.settings.SettingsSheetBottom
 import com.example.ChatBlaze.ui.theme.*
@@ -56,13 +60,8 @@ fun ChatScreenContent(
             modifier = modifier
                 .fillMaxSize()
                 .background(
-                    brush = SolidColor(if (isDarkTheme) MidnightBlack else CloudWhite),
+                    brush = if (isDarkTheme) BackgroundGradientDark else BackgroundGradientLight,
                     alpha = 0.9f
-                )
-                .border(
-                    width = 0.5.dp,
-                    brush = if (isDarkTheme) Brush.linearGradient(listOf(NeonBlue, ElectricCyan)) else Brush.linearGradient(listOf(Aquamarine, Purple40)),
-                    shape = RoundedCornerShape(16.dp)
                 ),
             contentAlignment = Alignment.BottomCenter
         ) {
@@ -70,15 +69,15 @@ fun ChatScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(PaddingExtraSmall)
+                verticalArrangement = Arrangement.Top
             ) {
                 TopBar(
                     onMenuClick = onDrawerClicked,
-                    isDarkTheme = isDarkTheme
+                    isDarkTheme = isDarkTheme,
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)
                 )
                 ChatMessages(
                     messages = uiState.messages,
-                    isOPH = true,
                     isLoading = uiState.isLoading,
                     theme = selectedTheme,
                     streamingMessage = uiState.streamingMessage,

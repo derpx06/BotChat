@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,7 +72,7 @@ fun SettingsSheetBottom(
                         Modifier.background(if (darkModeEnabled) MidnightBlack else CloudWhite)
                     } else {
                         Modifier.background(
-                            brush = if (darkModeEnabled) SettingsBackgroundGradientDark else SettingsBackgroundGradientLight
+                            brush = if (darkModeEnabled) BackgroundGradientDark else BackgroundGradientLight
                         )
                     }
                 )
@@ -86,7 +87,11 @@ fun SettingsSheetBottom(
             ) {
                 Text(
                     text = "Settings",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (darkModeEnabled) Color.White else Color.Black
+                    )
                 )
                 TabRow(
                     selectedTabIndex = selectedTabIndex,

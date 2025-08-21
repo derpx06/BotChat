@@ -61,12 +61,12 @@ fun ModelList(
     ) {
         item {
             // Assuming FilterColumn is defined elsewhere or not needed for this fix.
-            // FilterColumn(
-            //     filters = filters,
-            //     onFilterChange = onFilterChange,
-            //     sortBy = sortBy,
-            //     onSortByChange = onSortByChange
-            // )
+             FilterColumn(
+                 filters = filters,
+                 onFilterChange = onFilterChange,
+                 sortBy = sortBy,
+                 onSortByChange = onSortByChange
+             )
             Spacer(modifier = Modifier.height(8.dp))
         }
         items(

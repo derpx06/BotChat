@@ -28,10 +28,13 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.fontscaling.MathUtils.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ChatBlaze.data.database.ChatDao
 import com.example.ChatBlaze.data.database.modelDatabase.modelDao
+import com.example.ChatBlaze.data.model.UserSettingsDataStore
+import com.example.ChatBlaze.data.repository.ChatRepository
 import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModel
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 import kotlinx.coroutines.launch
@@ -41,7 +44,8 @@ import kotlin.coroutines.cancellation.CancellationException
 
 private enum class DrawerState { Open, Closed }
 private enum class Screen { Chat, Settings, Models, ClearChat }
-private val DrawerWidth = 300.dp
+
+private val DrawerWidth = 250.dp
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -52,7 +56,6 @@ fun ChatDrawer(
     modelDao: modelDao,
     modifier: Modifier = Modifier
 ) {
-    // Use MaterialTheme colors for a consistent look
     Surface(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surface
@@ -106,7 +109,7 @@ fun ChatDrawer(
             velocityTracker.resetTracking()
         }
 
-
+        // The chat drawer contents with updated UI
         ChatDrawerContents(
             chatViewModel = chatViewModel,
             onScreenSelected = { screen ->
@@ -133,7 +136,7 @@ fun ChatDrawer(
                     val scale = lerp(1f, 0.9f, translationX.value / drawerWidthPx)
                     scaleX = scale
                     scaleY = scale
-                    val cornerRadius = lerp(0f, 32.dp.toPx(), translationX.value / drawerWidthPx)
+                    val cornerRadius = lerp(0f, 48.dp.toPx(), translationX.value / drawerWidthPx)
                     shape = RoundedCornerShape(cornerRadius)
                     clip = true
                     shadowElevation = 24f
@@ -184,6 +187,7 @@ private fun ChatDrawerContents(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(16.dp)
         ) {
             Text(
@@ -195,7 +199,7 @@ private fun ChatDrawerContents(
             val sessions by chatViewModel.allSessions.collectAsStateWithLifecycle(initialValue = emptyList())
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp) // Increased spacing
             ) {
                 items(
                     items = sessions,
@@ -203,8 +207,8 @@ private fun ChatDrawerContents(
                 ) { session ->
                     val isSelected = session.sessionId == uiState.currentSessionId
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.width(DrawerWidth),
+                        shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (isSelected) {
                                 MaterialTheme.colorScheme.secondaryContainer
@@ -221,7 +225,7 @@ private fun ChatDrawerContents(
                                     onScreenSelected(Screen.Chat)
                                 }
                                 .fillMaxWidth()
-                                .padding(start = 20.dp, end = 8.dp), // Adjust padding for button
+                                .padding(start = 20.dp, end = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -234,7 +238,6 @@ private fun ChatDrawerContents(
                                     .weight(1f)
                                     .padding(vertical = 16.dp)
                             )
-                            // Replaced swipe-to-dismiss with a simple delete button
                             IconButton(onClick = { chatViewModel.deleteSession(session.sessionId) }) {
                                 Icon(
                                     imageVector = Icons.Outlined.Delete,
@@ -290,7 +293,8 @@ private fun DrawerActionItem(
     TextButton(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        // Increased corner radius for a curvier look
+        shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.textButtonColors(contentColor = contentColor)
     ) {
         Row(
@@ -311,3 +315,73 @@ private fun DrawerActionItem(
     }
 }
 
+// Helper function from the original code, re-added for completeness
+private fun lerp(start: Float, stop: Float, fraction: Float): Float {
+    return start + (stop - start) * fraction
+}
+
+@Preview
+@Composable
+fun ChatDrawerPreview() {
+    // Mock dependencies for ChatViewModel
+    val mockSettingsDataStore = UserSettingsDataStore(androidx.compose.ui.platform.LocalContext.current)
+    val mockChatDao = object : ChatDao {
+        override suspend fun insertChatMessage(message: com.example.ChatBlaze.data.database.ChatMessage) {}
+        override suspend fun insertChatSession(session: com.example.ChatBlaze.data.database.ChatSession): Long = 0L
+        override fun getMessagesBySession(sessionId: Long): kotlinx.coroutines.flow.Flow<List<com.example.ChatBlaze.data.database.ChatMessage>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getAllChatMessages(): kotlinx.coroutines.flow.Flow<List<com.example.ChatBlaze.data.database.ChatMessage>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getAllChatSessions(): kotlinx.coroutines.flow.Flow<List<com.example.ChatBlaze.data.database.ChatSession>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override suspend fun deleteMessagesBySession(sessionId: Long) {}
+        override suspend fun deleteSession(sessionId: Long) {}
+        override suspend fun deleteAllChatMessages() {}
+        override suspend fun deleteAllSessions() {}
+        override suspend fun deleteMessage(messageId: Long) {}
+    }
+    val mockChatRepository = ChatRepository(mockChatDao)
+    val chatViewModel = ChatViewModel(mockSettingsDataStore, mockChatRepository)
+
+    // Mock dependencies for SettingViewModel
+    val settingViewModel = SettingViewModel(mockSettingsDataStore)
+
+    // Mock modelDao
+    val mockModelDao = object : modelDao {
+        override suspend fun insertSelectedModel(model: com.example.ChatBlaze.data.database.modelDatabase.SelectedModel) {}
+        override fun getAllModels(): kotlinx.coroutines.flow.Flow<List<com.example.ChatBlaze.data.database.modelDatabase.SelectedModel>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override suspend fun deleteSelectedModel(model: com.example.ChatBlaze.data.database.modelDatabase.SelectedModel) {}
+        override suspend fun deleteAllModels() {}
+    }
+
+    ChatDrawer(
+        chatViewModel = chatViewModel,
+        settingViewModel = settingViewModel,
+        onNavigateToModels = {},
+        modelDao = mockModelDao
+    )
+}
+
+@Preview
+@Composable
+fun ChatDrawerContentsPreview() {
+    val mockSettingsDataStore = UserSettingsDataStore(androidx.compose.ui.platform.LocalContext.current)
+    val mockChatDao = object : ChatDao {
+        override suspend fun insertChatMessage(message: com.example.ChatBlaze.data.database.ChatMessage) {}
+        override suspend fun insertChatSession(session: com.example.ChatBlaze.data.database.ChatSession): Long = 0L
+        override fun getMessagesBySession(sessionId: Long): kotlinx.coroutines.flow.Flow<List<com.example.ChatBlaze.data.database.ChatMessage>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getAllChatMessages(): kotlinx.coroutines.flow.Flow<List<com.example.ChatBlaze.data.database.ChatMessage>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override fun getAllChatSessions(): kotlinx.coroutines.flow.Flow<List<com.example.ChatBlaze.data.database.ChatSession>> = kotlinx.coroutines.flow.flowOf(emptyList())
+        override suspend fun deleteMessagesBySession(sessionId: Long) {}
+        override suspend fun deleteSession(sessionId: Long) {}
+        override suspend fun deleteAllChatMessages() {}
+        override suspend fun deleteAllSessions() {}
+        override suspend fun deleteMessage(messageId: Long) {}
+    }
+    val mockChatRepository = ChatRepository(mockChatDao)
+    val chatViewModel = ChatViewModel(mockSettingsDataStore, mockChatRepository)
+    ChatDrawerContents(chatViewModel = chatViewModel, onScreenSelected = {})
+}
+
+@Preview
+@Composable
+fun DrawerActionItemPreview() {
+    DrawerActionItem(label = "New Chat", icon = Icons.Outlined.AddComment, onClick = {})
+}

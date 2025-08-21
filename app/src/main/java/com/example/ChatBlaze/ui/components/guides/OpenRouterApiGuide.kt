@@ -1,5 +1,6 @@
 package com.example.ChatBlaze.ui.components.guides
 
+import BotChatTheme
 import android.content.res.Configuration
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*

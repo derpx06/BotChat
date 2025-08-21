@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,6 +51,7 @@ fun OpenRouterSettingsSubTab(
     val currentModelId by settingViewModel.openRouterModel.collectAsStateWithLifecycle(initialValue = "")
     val apiKey by settingViewModel.openRouterApiKey.collectAsStateWithLifecycle(initialValue = "")
     var showApiKey by remember { mutableStateOf(false) }
+    val isDarkTheme = MaterialTheme.colorScheme.background.red < 0.5f // Simplified check
 
     // Fetch selected models from the database and sync with current model ID
     LaunchedEffect(Unit) {
@@ -88,7 +90,7 @@ fun OpenRouterSettingsSubTab(
             Text(
                 text = "OpenRouter Configuration",
                 style = MaterialTheme.typography.titleLarge.copy(
-                    color = if (MaterialTheme.colorScheme.background == MidnightBlack) PureWhite else SlateBlack,
+                    color = if (isDarkTheme) Color.White else Color.Black,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -98,7 +100,7 @@ fun OpenRouterSettingsSubTab(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 ApiKeyInput(
@@ -115,7 +117,7 @@ fun OpenRouterSettingsSubTab(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
@@ -125,7 +127,7 @@ fun OpenRouterSettingsSubTab(
                     Text(
                         text = "Active Model",
                         style = MaterialTheme.typography.titleMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = if (isDarkTheme) Color.White else Color.Black,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -168,7 +170,7 @@ fun OpenRouterSettingsSubTab(
                                             style = MaterialTheme.typography.bodyMedium.copy(
                                                 fontWeight = FontWeight.Medium,
                                                 fontSize = 14.sp,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                                color = if (isDarkTheme) Color.White else Color.Black
                                             ),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis

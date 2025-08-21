@@ -1,27 +1,43 @@
 package com.example.ChatBlaze.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
+// --- NEW VIBRANT BLUE GRADIENTS ---
+val BackgroundGradientVibrantBlue = Brush.verticalGradient(
+    colors = listOf(DeepMidnightBlue, RichNavy, SubtleViolet)
+)
+val ChatBubbleUserGradientVibrant = Brush.linearGradient(
+    colors = listOf(RichNavy, SoftBlueGray)
+)
+val ChatBubbleAIGradientVibrant = Brush.linearGradient(
+    colors = listOf(RichNavy, DeepMidnightBlue)
+)
+
 // New Soft Pastel Colors
-val BlushPink = Color(0xFFFED7E2)        // Soft pink for gentle accents
-val SkyBlue = Color(0xFFB3E5FC)          // Light blue for calm backgrounds
-val CreamyMint = Color(0xFFD4F4E2)       // Subtle mint for freshness
-val VanillaCream = Color(0xFFFFF5E6)     // Warm cream for elegance
-val PowderBlue = Color(0xFFB0C4DE)       // Muted blue for softness
-val SoftPeach = Color(0xFFF9E4B7)        // Light peach for warmth
-val LavenderHaze = Color(0xFFE8DAEF)     // Pale lavender for sophistication
-val MellowYellow = Color(0xFFFFF3B3)     // Soft yellow for highlights
+val BlushPink = Color(0xFFFED7E2)
+val SkyBlue = Color(0xFFB3E5FC)
+val CreamyMint = Color(0xFFD4F4E2)
+val VanillaCream = Color(0xFFFFF5E6)
+val PowderBlue = Color(0xFFB0C4DE)
+val SoftPeach = Color(0xFFF9E4B7)
+val LavenderHaze = Color(0xFFE8DAEF)
+val MellowYellow = Color(0xFFFFF3B3)
 
 // New Vibrant Neon Colors
-val ElectricPink = Color(0xFFFF2E95)     // Bright pink for bold accents
-val VividCyan = Color(0xFF00E7FF)        // Intense cyan for vibrancy
-val LimeBurst = Color(0xFFCCFF00)        // Neon green for attention
-val FlameOrange = Color(0xFFFF3D00)      // Fiery orange for emphasis
-val UltraViolet = Color(0xFF7C4DFF)      // Deep neon purple for elegance
-val NeonCoral = Color(0xFFFF6F61)        // Vibrant coral for warmth
-val BrightMagenta = Color(0xFFC51162)    // Bold magenta for striking UI
-val TurboYellow = Color(0xFFF4E04D)      // Vivid yellow for alerts
+val ElectricPink = Color(0xFFFF2E95)
+val VividCyan = Color(0xFF00E7FF)
+val LimeBurst = Color(0xFFCCFF00)
+val FlameOrange = Color(0xFFFF3D00)
+val UltraViolet = Color(0xFF7C4DFF)
+val NeonCoral = Color(0xFFFF6F61)
+val BrightMagenta = Color(0xFFC51162)
+val TurboYellow = Color(0xFFF4E04D)
 
 // Dark Theme Gradients (Unchanged)
 val BackgroundGradientDark = Brush.verticalGradient(
@@ -204,6 +220,12 @@ val MinimalInputGradientLight = Brush.linearGradient(
     colors = listOf(FogGray, PearlWhite.copy(alpha = 0.7f))
 )
 
+val VibrantAbstractGradientDark = Brush.verticalGradient(
+    colors = listOf(GalacticBlack, CosmicIndigo, ElectricViolet)
+)
+val VibrantAbstractGradientLight = Brush.verticalGradient(
+    colors = listOf(CloudPink, MintBurst, VividSky)
+)
 // New Response Gradients for AI Messages
 val ResponseGradientDark = Brush.linearGradient(
     colors = listOf(CharredBlack, OnyxBlack.copy(alpha = 0.8f), ObsidianGray)
@@ -217,3 +239,5 @@ val ResponseGradientDarkMode = Brush.linearGradient(
 val ResponseGradientLightMode = Brush.linearGradient(
     colors = listOf(MistGray, SoftGray.copy(alpha = 0.8f), CloudWhite)
 )
+
+// Theme Composable

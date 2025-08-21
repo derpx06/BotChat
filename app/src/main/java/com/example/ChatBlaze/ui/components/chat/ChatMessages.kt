@@ -1,5 +1,6 @@
 package com.example.ChatBlaze.ui.components.chat
 
+import BotChatTheme
 import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -21,14 +22,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -62,14 +66,16 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ChatBlaze.data.database.ChatMessage
 import com.example.ChatBlaze.ui.theme.AccentIndigo
 import com.example.ChatBlaze.ui.theme.AstralBlue
+import com.example.ChatBlaze.ui.theme.BackgroundGradientDark
+import com.example.ChatBlaze.ui.theme.BackgroundGradientVibrantBlue
 import com.example.ChatBlaze.ui.theme.Black
-import com.example.ChatBlaze.ui.theme.BotChatTheme
 import com.example.ChatBlaze.ui.theme.BottomFadeGradientDark
 import com.example.ChatBlaze.ui.theme.BottomFadeGradientLight
 import com.example.ChatBlaze.ui.theme.ChatBubbleGradientDark
@@ -92,6 +98,7 @@ import com.example.ChatBlaze.ui.theme.TopBarUnderlineLight
 import com.example.ChatBlaze.ui.theme.WhiteTranslucent
 import kotlinx.coroutines.launch
 
+
 private sealed class ParsedContent {
     data class TextContent(val text: AnnotatedString) : ParsedContent()
     data class CodeContent(val language: String, val code: String) : ParsedContent()
@@ -106,7 +113,6 @@ fun ChatMessages(
     streamingMessage: String,
     modifier: Modifier = Modifier,
     isDarkTheme: Boolean = false,
-    isOPH: Boolean,
     onPauseGeneration: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
@@ -128,44 +134,42 @@ fun ChatMessages(
             .then(
                 when (theme) {
                     "gradient" -> Modifier.background(
-                        brush = if (isDarkTheme) ChatInterfaceGradientDark else ChatInterfaceGradientLight,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        alpha = 0.95f
+                        brush = if (isDarkTheme) BackgroundGradientDark else ChatInterfaceGradientLight,
+                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp),
                     )
 
                     else -> Modifier.background(
                         color = if (isDarkTheme) MidnightBlack else CloudWhite,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
                     )
                 }
             )
             .border(
-                width = 0.5.dp,
+                width = 0.3.dp,
                 brush = if (isDarkTheme) TopBarUnderlineDark else TopBarUnderlineLight,
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
             )
             .padding(PaddingTiny)
+            .windowInsetsPadding(WindowInsets.statusBars)
     ) {
-
-
         when {
-            !isOPH -> Text(
-                text = "Chat hidden",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = if (isDarkTheme) GalacticGray else CoolGray,
-                    fontSize = 16.sp
-                ),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
-            messages.isEmpty() && !isLoading && streamingMessage.isEmpty() -> Text(
-                text = "Start a conversation",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = if (isDarkTheme) GalacticGray else CoolGray,
-                    fontSize = 16.sp
-                ),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+            messages.isEmpty() && !isLoading && streamingMessage.isEmpty() -> Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = PaddingExtraLarge),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Hey there! Let's get started. 😊\nWhat's on your mind?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = if (isDarkTheme) GalacticGray else OnyxBlack,
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 28.sp
+                    ),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
             else -> LazyColumn(
                 modifier = Modifier
@@ -219,16 +223,15 @@ private fun ChatMessageItem(
 
     if (isUserMessage) {
         val bubbleShape =
-            RoundedCornerShape(topStart = 20.dp, topEnd = 10.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
-        BoxWithConstraints(
+            RoundedCornerShape(topStart = 24.dp, topEnd = 8.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+        Row(
             modifier = modifier
-                .fillMaxWidth()
-                .padding(start = 0.dp, end = PaddingTiny)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
         ) {
             Box(
                 modifier = Modifier
-                    .padding(start = maxWidth * 0.02f)
-                    .align(Alignment.CenterEnd)
+                    .widthIn(max = 280.dp)
                     .clip(bubbleShape)
                     .then(
                         if (theme == "gradient") Modifier.background(
@@ -251,7 +254,7 @@ private fun ChatMessageItem(
                 Text(
                     text = message.content,
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         color = if (isDarkTheme) PureWhite else SlateBlack,
                         fontWeight = FontWeight.Medium,
                         lineHeight = 24.sp,
@@ -266,20 +269,19 @@ private fun ChatMessageItem(
             parseThoughtAndResponse(message.content)
         }
         val bubbleShape = RoundedCornerShape(
-            topStart = 10.dp,
-            topEnd = 20.dp,
-            bottomStart = 20.dp,
-            bottomEnd = 20.dp
+            topStart = 8.dp,
+            topEnd = 24.dp,
+            bottomStart = 24.dp,
+            bottomEnd = 24.dp
         )
 
         Row(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(PaddingExtraSmall)
+            horizontalArrangement = Arrangement.Start
         ) {
             Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = PaddingTiny)
+                    .fillMaxWidth()
                     .clip(bubbleShape)
                     .background(
                         brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
@@ -290,7 +292,7 @@ private fun ChatMessageItem(
                         brush = if (isDarkTheme) BottomFadeGradientDark else BottomFadeGradientLight,
                         shape = bubbleShape
                     )
-                    .padding(horizontal = PaddingMedium, vertical = PaddingLarge)
+                    .padding(horizontal = PaddingLarge, vertical = PaddingLarge)
             ) {
                 Column {
                     if (thinkingText != null) {
@@ -314,7 +316,7 @@ private fun ChatMessageItem(
                                         Text(
                                             text = contentPart.text,
                                             style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontSize = 15.sp,
+                                                fontSize = 16.sp,
                                                 color = if (isDarkTheme) PureWhite else SlateBlack,
                                                 fontWeight = FontWeight.Normal,
                                                 lineHeight = 25.sp,
@@ -356,21 +358,19 @@ private fun ModelResponseItem(
         parseThoughtAndResponse(content)
     }
     val bubbleShape = RoundedCornerShape(
-        topStart = 10.dp,
-        topEnd = 20.dp,
-        bottomStart = 20.dp,
-        bottomEnd = 20.dp
+        topStart = 8.dp,
+        topEnd = 24.dp,
+        bottomStart = 24.dp,
+        bottomEnd = 24.dp
     )
 
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
+        horizontalArrangement = Arrangement.Start
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .weight(1f)
-                .padding(end = PaddingSmall)
-                .widthIn(min = 60.dp)
+                .fillMaxWidth()
                 .clip(bubbleShape)
                 .background(
                     brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
@@ -383,74 +383,53 @@ private fun ModelResponseItem(
                 )
                 .padding(horizontal = PaddingLarge, vertical = PaddingLarge)
         ) {
-            if (isThinking) {
-                TypingIndicator(isDarkTheme = isDarkTheme)
-            } else {
-                if (thinkingText != null) {
-                    ThinkingBlock(
-                        thinkingText = thinkingText,
-                        isThinkingVisible = isThinkingVisible,
-                        isDarkTheme = isDarkTheme,
-                        onToggleVisibility = { isThinkingVisible = !isThinkingVisible }
-                    )
-                }
-                val parsedContent = remember(responseText, isDarkTheme) {
-                    parseMarkdownAndCode(responseText, isDarkTheme)
-                }
-                if (parsedContent.isNotEmpty()) {
-                    parsedContent.forEach { contentPart ->
-                        when (contentPart) {
-                            is ParsedContent.TextContent -> {
-                                if (contentPart.text.isNotEmpty()) {
-                                    Text(
-                                        text = contentPart.text,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontSize = 15.sp,
-                                            color = if (isDarkTheme) PureWhite else SlateBlack,
-                                            fontWeight = FontWeight.Normal,
-                                            lineHeight = 25.sp,
-                                            letterSpacing = 0.4.sp
+            Column {
+                if (isThinking) {
+                    TypingIndicator(isDarkTheme = isDarkTheme)
+                } else {
+                    if (thinkingText != null) {
+                        ThinkingBlock(
+                            thinkingText = thinkingText,
+                            isThinkingVisible = isThinkingVisible,
+                            isDarkTheme = isDarkTheme,
+                            onToggleVisibility = { isThinkingVisible = !isThinkingVisible }
+                        )
+                    }
+                    val parsedContent = remember(responseText, isDarkTheme) {
+                        parseMarkdownAndCode(responseText, isDarkTheme)
+                    }
+                    if (parsedContent.isNotEmpty()) {
+                        parsedContent.forEach { contentPart ->
+                            when (contentPart) {
+                                is ParsedContent.TextContent -> {
+                                    if (contentPart.text.isNotEmpty()) {
+                                        Text(
+                                            text = contentPart.text,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontSize = 16.sp,
+                                                color = if (isDarkTheme) PureWhite else SlateBlack,
+                                                fontWeight = FontWeight.Normal,
+                                                lineHeight = 25.sp,
+                                                letterSpacing = 0.4.sp
+                                            )
                                         )
+                                    }
+                                }
+
+                                is ParsedContent.CodeContent -> {
+                                    CodeBlock(
+                                        language = contentPart.language,
+                                        code = contentPart.code,
+                                        isDarkTheme = isDarkTheme,
+                                        modifier = Modifier.padding(top = PaddingSmall)
                                     )
                                 }
-                            }
-
-                            is ParsedContent.CodeContent -> {
-                                CodeBlock(
-                                    language = contentPart.language,
-                                    code = contentPart.code,
-                                    isDarkTheme = isDarkTheme,
-                                    modifier = Modifier.padding(top = PaddingSmall)
-                                )
                             }
                         }
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun AIAvatar(isDarkTheme: Boolean) {
-    Box(
-        modifier = Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .background(
-                if (isDarkTheme) AstralBlue.copy(alpha = 0.8f) else CoolGray.copy(
-                    alpha = 0.2f
-                )
-            )
-    ) {
-        Icon(
-            imageVector = Icons.Filled.SmartToy,
-            contentDescription = "AI Avatar",
-            tint = if (isDarkTheme) ElectricCyan else SapphireBlue,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(20.dp)
-        )
     }
 }
 
@@ -473,12 +452,12 @@ private fun ThinkingBlock(
                 imageVector = Icons.Filled.Psychology,
                 contentDescription = "Thinking Process",
                 tint = if (isDarkTheme) CloudWhite else OnyxBlack,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(18.dp)
             )
-            Spacer(Modifier.width(PaddingSmall))
+            Spacer(Modifier.width(PaddingExtraSmall))
             Text(
                 if (isThinkingVisible) "Hide thought" else "Show thought",
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 color = if (isDarkTheme) CloudWhite else OnyxBlack,
                 fontWeight = FontWeight.Medium
             )
@@ -507,8 +486,8 @@ private fun ThinkingBlock(
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = (if (isDarkTheme) WhiteTranslucent else OnyxBlack).copy(alpha = 0.8f),
                     fontStyle = FontStyle.Italic,
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp
                 )
             )
         }
@@ -555,7 +534,7 @@ private fun CodeBlock(
                 Text(
                     text = language.ifEmpty { "code" }.lowercase(),
                     color = if (isDarkTheme) CoolGray else GalacticGray,
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 IconButton(
@@ -565,13 +544,13 @@ private fun CodeBlock(
                             .makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT)
                             .show()
                     },
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(28.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.ContentCopy,
                         contentDescription = "Copy code",
                         tint = if (isDarkTheme) CoolGray else GalacticGray,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
@@ -722,8 +701,8 @@ private fun parseMarkdown(text: String, isDarkTheme: Boolean): AnnotatedString {
                 builder.addStyle(
                     SpanStyle(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp, // Adjusted font size
-                        color = mainTextColor // Unified color
+                        fontSize = 20.sp,
+                        color = mainTextColor
                     ),
                     currentIndex,
                     currentIndex + headerText.length
@@ -824,7 +803,7 @@ private val PaddingSmall = 8.dp
 private val PaddingMedium = 12.dp
 private val PaddingLarge = 16.dp
 private val PaddingExtraLarge = 24.dp
-private val paddingUltraLarge  = 80.dp
+private val paddingUltraLarge = 80.dp
 
 @Preview(name = "Chat Message Item - User - Light", showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
@@ -869,7 +848,7 @@ fun ChatMessageItemModelLightPreview() {
         ChatMessageItem(
             message = ChatMessage(
                 id = 2,
-                content = "◁think▷The user said hello. I will respond in kind and offer assistance.◁/think▷Hi there! I'm the model.\n# Header\n**Bold** and *italic*.",
+                content = "◁think▷The user said hello. I will respond in kind and offer assistance.◁/think▷# Header\nThis is a response.\n- Item 1\n- Item 2",
                 isUser = false,
                 timestamp = System.currentTimeMillis(),
                 sessionId = 1L
@@ -979,23 +958,7 @@ fun ChatMessagesEmptyLightPreview() {
             isLoading = false,
             theme = "default",
             streamingMessage = "",
-            isDarkTheme = false,
-            isOPH = true
-        )
-    }
-}
-
-@Preview(name = "Chat Messages - Hidden - Dark", showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun ChatMessagesHiddenDarkPreview() {
-    BotChatTheme(darkTheme = true) {
-        ChatMessages(
-            messages = emptyList(),
-            isLoading = false,
-            theme = "default",
-            streamingMessage = "",
-            isDarkTheme = true,
-            isOPH = false
+            isDarkTheme = false
         )
     }
 }
@@ -1030,8 +993,7 @@ fun ChatMessagesWithContentLightPreview() {
             isLoading = false,
             theme = "default",
             streamingMessage = "",
-            isDarkTheme = false,
-            isOPH = true
+            isDarkTheme = false
         )
     }
 }
@@ -1059,8 +1021,7 @@ fun ChatMessagesLoadingDarkPreview() {
             isLoading = true,
             theme = "gradient",
             streamingMessage = "",
-            isDarkTheme = true,
-            isOPH = true
+            isDarkTheme = true
         )
     }
 }
@@ -1088,8 +1049,7 @@ fun ChatMessagesStreamingDarkPreview() {
             isLoading = false,
             theme = "default",
             streamingMessage = "◁think▷The user is asking about Kotlin.◁/think▷Kotlin is a programming language...",
-            isDarkTheme = true,
-            isOPH = true
+            isDarkTheme = true
         )
     }
 }
@@ -1098,7 +1058,7 @@ fun ChatMessagesStreamingDarkPreview() {
 @Composable
 fun MarkdownParsingPreview() {
     BotChatTheme(darkTheme = false) {
-        val markdownText = "# Header\nThis is **bold** and *italic*.\n> This is a quote."
+        val markdownText = "# Header\nThis is **bold** and *italic*.\n> This is a quote.\n- List item 1\n- List item 2"
         Box(
             Modifier
                 .padding(16.dp)
@@ -1108,4 +1068,3 @@ fun MarkdownParsingPreview() {
         }
     }
 }
-

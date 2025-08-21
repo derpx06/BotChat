@@ -66,18 +66,18 @@ fun ChatInputSection(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 1.dp, vertical = 15.dp),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(27.dp),
         color = Color.Transparent
        // shadowElevation = 20.dp
     ) {
         Box(
             modifier = Modifier
-                .background(Color.Black.copy(alpha = 0.2f))
+                .background(Color.Black.copy(alpha = 0.2f)),
         ) {
             Row(
-                modifier = Modifier.padding(5.dp) ,
+                modifier = Modifier.padding(vertical = 15.dp, horizontal = 5.dp) ,
                 verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 IconButton(
                     onClick = { },

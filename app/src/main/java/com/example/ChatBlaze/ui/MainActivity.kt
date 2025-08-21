@@ -1,5 +1,6 @@
 package com.example.ChatBlaze.ui
 
+import BotChatTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,7 +16,7 @@ import com.example.ChatBlaze.data.model.UserSettingsDataStore
 import com.example.ChatBlaze.data.database.modelDatabase.modelDatabase
 import com.example.ChatBlaze.ui.components.ModelScreen
 import com.example.ChatBlaze.ui.components.chat.ChatScreen
-import com.example.ChatBlaze.ui.theme.BotChatTheme
+import com.example.ChatBlaze.ui.theme.*
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModelFactory
 import dagger.hilt.android.AndroidEntryPoint

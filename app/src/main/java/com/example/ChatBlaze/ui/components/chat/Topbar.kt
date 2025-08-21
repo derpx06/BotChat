@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ChatBlaze.ui.theme.*
+
 @Preview
 @Composable
 fun TopBar(
@@ -52,7 +53,7 @@ fun TopBar(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(56.dp) // Reduced height
             .shadow(
                 elevation = 4.dp,
                 shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp),
@@ -78,16 +79,14 @@ fun TopBar(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = 8.dp), // Reduced horizontal padding
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-
-
                 IconButton(
                     onClick = onMenuClick,
                     modifier = Modifier
-                        .size(52.dp)
+                        .size(44.dp) // Reduced button size
                         .clip(RoundedCornerShape(16.dp))
                         .background(
                             brush = Brush.radialGradient(
@@ -104,7 +103,7 @@ fun TopBar(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Toggle Menu",
                         tint = if (isDarkTheme) NeonBlue else Aquamarine,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(28.dp) // Reduced icon size
                     )
                 }
                 Text(
@@ -112,10 +111,11 @@ fun TopBar(
                     style = MaterialTheme.typography.headlineSmall.copy(
                         color = if (isDarkTheme) PureWhite else SlateBlack,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp,
+                        fontSize = 20.sp,
                         letterSpacing = 0.5.sp
                     ),
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier
+                        .padding(start = 8.dp)
                         .weight(1f)
                 )
             }
