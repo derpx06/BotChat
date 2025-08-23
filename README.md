@@ -1,6 +1,6 @@
-<img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/c5764688-bae9-4e6b-bbb0-8b2404db4d78" /># BotChat: AI Chat Assistant
+# BotChat: AI Chat Assistant
 
-![BotChat Logo](https://via.placeholder.com/150?text=BotChat)  
+![BotChat Logo](https://via.placeholder.com/150?text=BotChat)
 *Work in Progress: An Android app for AI-driven conversations using cloud APIs, local servers, or offline LLMs.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -8,14 +8,20 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.0-blue.svg)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2.0.0-orange.svg)](https://developer.android.com/jetpack/compose)
 
-BotChat is an open-source AI chat app for Android, enabling users to engage with AI via OpenRouter or HuggingFace APIs, a local server, or offline LLMs. Select from various language models and enjoy a modern, responsive UI built with Jetpack Compose.![Untitled](https://github.com/user-attachments/assets/25dca1f4-8647-41d0-abe5-08be38e3c5e7)
-![un](https://github.com/user-attachments/assets/5c6e251c-b1b6-4ab6-bc11-21e23db8e1e9)
-![uni](https://github.com/user-attachments/assets/db5062a5-d753-4519-940d-32f3525bdad4)
-![unti](https://github.com/user-attachments/assets/7218c424-1471-44a1-94ed-7761dc2ec4bf)
-![set](https://github.com/user-attachments/assets/ee5ace20-6d7c-4e3f-8caa-21e964e068ab)
-![utit](https://github.com/user-attachments/assets/0e030a55-1094-435a-b074-45f08c5376c0)
+BotChat is an open-source AI chat app for Android, enabling users to engage with AI via OpenRouter or HuggingFace APIs, a local server, or offline LLMs. Select from various language models and enjoy a modern, responsive UI built with Jetpack Compose.
 
-
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/25dca1f4-8647-41d0-abe5-08be38e3c5e7" width="220"></td>
+    <td><img src="https://github.com/user-attachments/assets/5c6e251c-b1b6-4ab6-bc11-21e23db8e1e9" width="220"></td>
+    <td><img src="https://github.com/user-attachments/assets/db5062a5-d753-4519-940d-32f3525bdad4" width="220"></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/7218c424-1471-44a1-94ed-7761dc2ec4bf" width="220"></td>
+    <td><img src="https://github.com/user-attachments/assets/ee5ace20-6d7c-4e3f-8caa-21e964e068ab" width="220"></td>
+    <td><img src="https://github.com/user-attachments/assets/0e030a55-1094-435a-b074-45f08c5376c0" width="220"></td>
+  </tr>
+</table>
 
 > **Note**: This project is under active development. Contributions are encouraged!
 
@@ -53,6 +59,5 @@ BotChat is an open-source AI chat app for Android, enabling users to engage with
 ### Steps
 1. **Clone the Repo**:
    ```bash
-   git clone https://github.com/your-repo/botchat.git
+   git clone [https://github.com/your-repo/botchat.git](https://github.com/your-repo/botchat.git)
    cd botchat
-Pls contribute if you can
