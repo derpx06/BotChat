@@ -9,6 +9,7 @@
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2.0.0-orange.svg)](https://developer.android.com/jetpack/compose)
 
 BotChat is an open-source AI chat app for Android, enabling users to engage with AI via OpenRouter or HuggingFace APIs, a local server, or offline LLMs. Select from various language models and enjoy a modern, responsive UI built with Jetpack Compose.
+![Uploading image.png…]()
 
 > **Note**: This project is under active development. Contributions are encouraged!
 
