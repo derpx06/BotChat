@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ChatBlaze"
+    namespace = "com.example.botchat"
     compileSdk = 35
 
     defaultConfig {
@@ -20,14 +20,25 @@ android {
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
+        getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = false
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -58,15 +69,18 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
 
     // Accompanist (for System UI Controller)
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
+    implementation(libs.accompanist.systemuicontroller)
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
 
     // Networking (Retrofit & OkHttp)
     implementation(libs.bundles.retrofit)
-    implementation(libs.okhttp.sse) // For Server-Sent Events (Streaming)
+    implementation(libs.okhttp.sse)
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    implementation(libs.kotlinx.coroutines.android)
 
     // Persistence (Room & DataStore)
     implementation(libs.bundles.room)
@@ -78,8 +92,9 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
-    // On-Device AI (MediaPipe)
+    // On-Device AI (MediaPipe & TensorFlow Lite)
     implementation(libs.mediapipe.tasks.genai)
+    implementation(libs.tensorflow.lite.task.text)
 
     // Image Loading
     implementation(libs.coil.compose)
@@ -87,7 +102,8 @@ dependencies {
     // Security
     implementation(libs.androidx.security.crypto)
 
-    // Markdown Rendering
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Testing
     testImplementation(libs.junit)

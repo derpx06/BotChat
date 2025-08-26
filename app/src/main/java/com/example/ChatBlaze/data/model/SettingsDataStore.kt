@@ -26,6 +26,8 @@ data class UserSettingsDataStore(private val context: Context) {
         private val SOUND_EFFECTS_ENABLED = booleanPreferencesKey("sound_effects_enabled")
         private val SELECTED_PROVIDER = stringPreferencesKey("selected_provider")
         private val THEME = stringPreferencesKey("theme")
+        private val SELECTED_LOCAL_MODEL = stringPreferencesKey("selected_local_model")
+
     }
 
     val getDarkModeSetting: Flow<String> = context.dataStore.data
@@ -120,6 +122,14 @@ data class UserSettingsDataStore(private val context: Context) {
 
     suspend fun updateSelectedProvider(provider: String) {
         context.dataStore.edit { preferences -> preferences[SELECTED_PROVIDER] = provider }
+    }
+    val getSelectedLocalModel: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[SELECTED_LOCAL_MODEL] ?: "" }
+
+    suspend fun saveSelectedLocalModel(modelId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[SELECTED_LOCAL_MODEL] = modelId
+        }
     }
 
     suspend fun updateTheme(theme: String) {

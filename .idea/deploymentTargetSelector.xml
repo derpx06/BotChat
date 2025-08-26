@@ -11,6 +11,9 @@
       <SelectionState runConfigName="ChatMessagesLoadingDarkPreview - Chat Messages - Loading - Dark">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="ModelDownloaderScreen">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

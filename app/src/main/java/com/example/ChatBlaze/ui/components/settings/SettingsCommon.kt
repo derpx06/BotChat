@@ -110,10 +110,8 @@ fun ApiKeyInput(
             },
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = if (showApiKey) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
                 IconButton(onClick = onVisibilityToggle) {
-                    // CORRECTED: Replaced painterResource with the standard Material Icons.
                     Icon(
                         imageVector = if (showApiKey) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                         contentDescription = "Toggle API Key Visibility",

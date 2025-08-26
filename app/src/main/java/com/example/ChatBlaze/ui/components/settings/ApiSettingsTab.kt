@@ -1,5 +1,6 @@
 package com.example.ChatBlaze.ui.components.settings
 
+import android.content.Context
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -14,18 +15,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ChatBlaze.data.database.modelDatabase.modelDao
+import com.example.ChatBlaze.data.model.UserSettingsDataStore
+import com.example.ChatBlaze.data.downlaod.DefaultDownloadRepository
+import com.example.ChatBlaze.data.download.ModelDownloaderViewModel
 import com.example.ChatBlaze.ui.theme.Transparent
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
+
 
 @Composable
 fun ApiSettingsTab(
     settingViewModel: SettingViewModel,
     modelDao: modelDao,
+    modelDownloaderViewModel: ModelDownloaderViewModel = ModelDownloaderViewModel(LocalContext.current,
+        DefaultDownloadRepository(LocalContext.current)
+    ),
     onNavigateToModels: () -> Unit,
     selectedProvider: String,
     openRouterApiKey: String,
@@ -52,6 +62,7 @@ fun ApiSettingsTab(
     val selectedProvider by settingViewModel.selectedProvider.collectAsStateWithLifecycle(initialValue = "openrouter")
     val cachingEnabled by settingViewModel.cachingEnabled.collectAsStateWithLifecycle(initialValue = true)
     var showAdvancedSettings by remember { mutableStateOf(false) }
+    val uiState by modelDownloaderViewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -73,9 +84,17 @@ fun ApiSettingsTab(
             selectedProvider = selectedProvider,
             onProviderChange = { settingViewModel.updateSelectedProvider(it) }
         )
-        var selectedSubTabIndex by remember { mutableStateOf(if (selectedProvider == "openrouter") 0 else 1) }
+        var selectedSubTabIndex by remember { mutableStateOf(when (selectedProvider) {
+            "openrouter" -> 0
+            "huggingface" -> 1
+            else -> 2
+        }) }
         LaunchedEffect(selectedProvider) {
-            selectedSubTabIndex = if (selectedProvider == "openrouter") 0 else 1
+            selectedSubTabIndex = when (selectedProvider) {
+                "openrouter" -> 0
+                "huggingface" -> 1
+                else -> 2
+            }
         }
         AnimatedVisibility(
             visible = true,
@@ -96,7 +115,7 @@ fun ApiSettingsTab(
                     )
                 }
             ) {
-                listOf("OpenRouter", "HuggingFace").forEachIndexed { index, title ->
+                listOf("OpenRouter", "HuggingFace", "Local").forEachIndexed { index, title ->
                     Tab(
                         selected = selectedSubTabIndex == index,
                         onClick = { selectedSubTabIndex = index },
@@ -136,6 +155,11 @@ fun ApiSettingsTab(
                 onApiKeyVisibilityToggle = onHuggingFaceApiKeyVisibilityToggle,
                 modifier = Modifier.fillMaxWidth()
             )
+            2 -> LocalSettingsSubTab(
+                viewModel = modelDownloaderViewModel,
+                modifier = Modifier.fillMaxWidth(),
+                settingsDataStore = UserSettingsDataStore(LocalContext.current)
+            )
         }
         AdvancedSettingsSection(
             showAdvancedSettings = showAdvancedSettings,
@@ -146,6 +170,39 @@ fun ApiSettingsTab(
     }
 }
 
+@Preview
+@Composable
+fun ApiSettingsTabPreview() {
+    val context = LocalContext.current
+    val settingViewModel = SettingViewModel(UserSettingsDataStore(context))
+    val modelDao: modelDao? = null // Provide a mock or null if not essential for preview
+    ApiSettingsTab(
+        settingViewModel = settingViewModel,
+        modelDao = modelDao!!,
+        onNavigateToModels = {},
+        selectedProvider = "openrouter",
+        openRouterApiKey = "test_api_key",
+        openRouterModel = "test_model",
+        huggingFaceApiKey = "test_hf_api_key",
+        huggingFaceServerUrl = "https://example.com",
+        huggingFaceModel = "test_hf_model",
+        showAdvancedSettings = false,
+        cachingEnabled = true,
+        showOpenRouterApiKey = false,
+        showHuggingFaceApiKey = false,
+        onSelectedProviderChange = {},
+        onOpenRouterApiKeyChange = {},
+        onOpenRouterModelChange = {},
+        onHuggingFaceApiKeyChange = {},
+        onHuggingFaceServerUrlChange = {},
+        onHuggingFaceModelChange = {},
+        onAdvancedSettingsToggle = {},
+        onCachingToggle = {},
+        onOpenRouterApiKeyVisibilityToggle = {},
+        onHuggingFaceApiKeyVisibilityToggle = {}
+    )
+}
+
 @Composable
 fun ProviderSelectionInput(
     selectedProvider: String,
@@ -153,7 +210,7 @@ fun ProviderSelectionInput(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val providers = listOf("openrouter", "huggingface")
+    val providers = listOf("openrouter", "huggingface", "local")
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -212,6 +269,15 @@ fun ProviderSelectionInput(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun ProviderSelectionInputPreview() {
+    ProviderSelectionInput(
+        selectedProvider = "openrouter",
+        onProviderChange = {}
+    )
 }
 
 @Composable
@@ -285,4 +351,15 @@ fun AdvancedSettingsSection(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun AdvancedSettingsSectionPreview() {
+    AdvancedSettingsSection(
+        showAdvancedSettings = true,
+        cachingEnabled = true,
+        onAdvancedSettingsToggle = {},
+        onCachingToggle = {}
+    )
 }

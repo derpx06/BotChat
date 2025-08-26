@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,14 +17,16 @@ import com.example.ChatBlaze.data.model.UserSettingsDataStore
 import com.example.ChatBlaze.data.database.modelDatabase.modelDatabase
 import com.example.ChatBlaze.ui.components.ModelScreen
 import com.example.ChatBlaze.ui.components.chat.ChatScreen
-import com.example.ChatBlaze.ui.theme.*
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModelFactory
+import com.example.botchat.ui.ModelDownloaderScreen
 import dagger.hilt.android.AndroidEntryPoint
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             val settingViewModel: SettingViewModel = viewModel(
                 factory = SettingViewModelFactory(UserSettingsDataStore(this))
@@ -49,9 +52,8 @@ fun AppNavigation(
     NavHost(navController = navController, startDestination = "chat") {
         composable("chat") {
             ChatScreen(
-                //settingViewModel = settingViewModel,
-                //modelDao = modelDao,
-                onNavigateToModels = { navController.navigate("models") }
+                onNavigateToModels = { navController.navigate("models") },
+                onNavigateToDownloader = { navController.navigate("model_downloader") }
             )
         }
         composable("models") {
@@ -60,6 +62,13 @@ fun AppNavigation(
                 modelDao = modelDao,
                 onModelSelected = { modelId ->
                     settingViewModel.updateOpenRouterModel(modelId)
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable("model_downloader") {
+            ModelDownloaderScreen(
+                onNavigateBack = {
                     navController.popBackStack()
                 }
             )

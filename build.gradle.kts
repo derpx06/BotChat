@@ -5,3 +5,4 @@ plugins {
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.kotlin.compose.compiler) apply false
 }
+

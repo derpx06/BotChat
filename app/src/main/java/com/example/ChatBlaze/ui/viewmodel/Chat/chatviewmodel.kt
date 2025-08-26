@@ -1,15 +1,9 @@
 package com.example.ChatBlaze.ui.viewmodel.Chat
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ChatBlaze.data.api.HuggingFaceApiService
-import com.example.ChatBlaze.data.api.OpenRouterApiService
-import com.example.ChatBlaze.data.model.HuggingFaceRequest
-import com.example.ChatBlaze.data.model.OpenRouterMessage
-import com.example.ChatBlaze.data.model.OpenRouterRequest
-import com.example.ChatBlaze.data.model.UserSettingsDataStore
-import com.example.ChatBlaze.data.database.ChatMessage
-import com.example.ChatBlaze.data.database.ChatSession
+
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +12,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.ChatBlaze.data.api.HuggingFaceApiService
+import com.example.ChatBlaze.data.api.OpenRouterApiService
+import com.example.ChatBlaze.data.database.ChatMessage
+import com.example.ChatBlaze.data.database.ChatSession
+import com.example.ChatBlaze.data.download.ModelDownloaderViewModel
+import com.example.ChatBlaze.data.model.HuggingFaceRequest
+import com.example.ChatBlaze.data.model.OpenRouterMessage
+import com.example.ChatBlaze.data.model.OpenRouterRequest
+import com.example.ChatBlaze.data.model.UserSettingsDataStore
 import com.example.ChatBlaze.data.repository.ChatRepository
+import com.example.botchat.data.api.LlmInferenceHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import java.io.IOException
@@ -38,16 +42,20 @@ data class UiState(
 class ChatViewModel(
     private val settingsDataStore: UserSettingsDataStore,
     private val chatRepository: ChatRepository,
+    private val modelDownloaderViewModel: ModelDownloaderViewModel,
+    private val context: Context,
     private val openRouterApiService: OpenRouterApiService = OpenRouterApiService.create(),
     private val huggingFaceApiService: HuggingFaceApiService = HuggingFaceApiService.create()
 ) : ViewModel() {
+    private val llmInferenceHelper: LlmInferenceHelper by lazy {
+        LlmInferenceHelper(context, modelDownloaderViewModel)
+    }
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
     val allSessions: Flow<List<ChatSession>> = chatRepository.getAllChatSessions()
     private var streamingJob: Job? = null
     private val _messagesFlow = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messagesFlow: StateFlow<List<ChatMessage>> = _messagesFlow.asStateFlow()
-    private var pendingSessionId: Long? = null // Track session to save only after message
 
     init {
         viewModelScope.launch {
@@ -109,8 +117,7 @@ class ChatViewModel(
             try {
                 var sessionId = _uiState.value.currentSessionId
                 if (sessionId == 0L) {
-                    // Save new session only when first message is sent
-                    val sessionTitle = inputText.take(50) // Use first 50 chars as title
+                    val sessionTitle = inputText.take(50)
                     val session = ChatSession(title = sessionTitle)
                     sessionId = chatRepository.insertChatSession(session)
                     Log.d("ChatViewModel", "New session created with ID: $sessionId, Title: $sessionTitle")
@@ -138,6 +145,74 @@ class ChatViewModel(
                 }
 
                 val provider = settingsDataStore.getSelectedProvider.first()
+                Log.d("ChatViewModel", "Provider: $provider")
+
+                if (provider == "local") {
+                    val selectedModelId = settingsDataStore.getSelectedLocalModel.first()
+                    if (selectedModelId.isEmpty()) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "No local model selected",
+                                showErrorDialog = true,
+                                retryAction = null
+                            )
+                        }
+                        return@launch
+                    }
+                    if (useStreaming) {
+                        streamingJob?.cancel()
+                        streamingJob = viewModelScope.launch {
+                            try {
+                                llmInferenceHelper.generateResponseStream(inputText, selectedModelId).collect { chunk ->
+                                    if (chunk.isNotEmpty()) {
+                                        _uiState.update {
+                                            it.copy(
+                                                streamingMessage = it.streamingMessage + chunk,
+                                                messages = _messagesFlow.value
+                                            )
+                                        }
+                                    }
+                                }
+                                val fullResponse = _uiState.value.streamingMessage
+                                val assistantMessage = ChatMessage(content = fullResponse, isUser = false, sessionId = sessionId)
+                                chatRepository.insertChatMessage(assistantMessage)
+                                Log.d("ChatViewModel", "Assistant message inserted: $fullResponse")
+                                val messagesAfterAssistant = chatRepository.getMessagesBySession(sessionId).first()
+                                _messagesFlow.value = messagesAfterAssistant
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        streamingMessage = "",
+                                        messages = messagesAfterAssistant
+                                    )
+                                }
+                                loadSession(sessionId)
+                            } catch (e: Exception) {
+                                Log.e("ChatViewModel", "Local streaming error: ${e.message}", e)
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        errorMessage = "Local inference error: ${e.message}",
+                                        showErrorDialog = true,
+                                        retryAction = { sendMessage(useStreaming) }
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        val responseText = llmInferenceHelper.generateResponse(inputText, selectedModelId)
+                        val assistantMessage = ChatMessage(content = responseText, isUser = false, sessionId = sessionId)
+                        chatRepository.insertChatMessage(assistantMessage)
+                        Log.d("ChatViewModel", "Assistant message inserted: $responseText")
+                        val messagesAfterAssistant = chatRepository.getMessagesBySession(sessionId).first()
+                        _messagesFlow.value = messagesAfterAssistant
+                        _uiState.update { it.copy(isLoading = false, streamingMessage = "", messages = messagesAfterAssistant) }
+                        loadSession(sessionId)
+                    }
+                    return@launch
+                }
+
                 val isHuggingFace = provider == "huggingface"
                 val apiKey = if (isHuggingFace) {
                     settingsDataStore.getHUGGINGFACE_API.first()
@@ -151,7 +226,7 @@ class ChatViewModel(
                 }
                 val apiEndpoint = if (isHuggingFace) settingsDataStore.getApiEndpoint.first() else "https://api.openrouter.ai/api/v1/"
 
-                Log.d("ChatViewModel", "API Endpoint: $apiEndpoint, Model: $model, Provider: $provider")
+                Log.d("ChatViewModel", "API Endpoint: $apiEndpoint, Model: $model")
 
                 if (apiKey.isEmpty() || model.isEmpty() || (isHuggingFace && apiEndpoint.isEmpty())) {
                     _uiState.update {
@@ -170,7 +245,12 @@ class ChatViewModel(
                     streamingJob = viewModelScope.launch {
                         val request = OpenRouterRequest(
                             model = model,
-                            messages = listOf(OpenRouterMessage(role = "user", content = inputText)),
+                            messages = listOf(
+                                OpenRouterMessage(
+                                    role = "user",
+                                    content = inputText
+                                )
+                            ),
                             maxTokens = 5000,
                             stream = true,
                             temperature = 0.7
