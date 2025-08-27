@@ -72,7 +72,6 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
-    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
 
     // Networking (Retrofit & OkHttp)
     implementation(libs.bundles.retrofit)
@@ -84,6 +83,7 @@ dependencies {
 
     // Persistence (Room & DataStore)
     implementation(libs.bundles.room)
+    implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
 

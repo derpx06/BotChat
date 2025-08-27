@@ -1,0 +1,54 @@
+{
+  "models": [
+    {
+      "id": "gemma-2b-it-cpu-int8",
+      "name": "Gemma 2B IT (int8)",
+      "url": "https://huggingface.co/google/gemma-2b-it-tflite/resolve/main/gemma-2b-it-cpu-int8.bin",
+      "description": "A lightweight, state-of-the-art open model built from the same research and technology used to create the Gemini models. Optimized for CPU with 8-bit quantization.",
+      "size": 2500000000,
+      "version": "main",
+      "category": "General Purpose",
+      "architecture": "Gemma"
+    },
+    {
+      "id": "phi3-instruct-q8",
+      "name": "Phi-3.5 Instruct (q8)",
+      "url": "https://huggingface.co/lokinfey/Phi-3.5-instruct-tflite/resolve/main/phi3_q8_seq1024_ekv1280.tflite",
+      "description": "Unofficial Phi-3.5-mini-instruct model converted to TFLite for on-device text generation and summarization.",
+      "size": 6470000000,
+      "version": "main",
+      "category": "General Purpose",
+      "architecture": "Phi-3"
+    },
+    {
+      "id": "llama-3.2-1b-q8",
+      "name": "LLaMA-3.2 1B (q8)",
+      "url": "https://huggingface.co/vimal-yuvabe/llama-3.2-1b-tflite/resolve/main/llama-3.2-1b-q8.tflite",
+      "description": "The LLaMA 3.2 1B model is a compact, high-performing language model designed for a variety of NLP tasks, quantized to 8-bit for on-device efficiency.",
+      "size": 2160000000,
+      "version": "main",
+      "category": "Code Generation",
+      "architecture": "LLaMA-3.2"
+    },
+    {
+      "id": "mobilebert-text-classifier",
+      "name": "MobileBERT Classifier",
+      "url": "https://storage.googleapis.com/mediapipe-models/text_classifier/bert_classifier/float32/latest/bert_classifier.tflite",
+      "description": "A lightweight and fast BERT variant optimized for text classification on resource-constrained mobile and edge devices.",
+      "size": 25000000,
+      "version": "latest",
+      "category": "Specialized",
+      "architecture": "MobileBERT"
+    },
+    {
+      "id": "blenderbot-small",
+      "name": "BlenderBot Small (90M)",
+      "url": "https://huggingface.co/jacob-valdez/blenderbot-small-tflite/resolve/main/blenderbot_small_90M.tflite",
+      "description": "TFLite version of BlenderBot Small (90M) for conversational tasks. A dialogue model that can chat and engage in open-domain conversations.",
+      "size": 351000000,
+      "version": "main",
+      "category": "Specialized",
+      "architecture": "BlenderBot"
+    }
+  ]
+}

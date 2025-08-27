@@ -16,13 +16,13 @@ import com.example.ChatBlaze.data.api.HuggingFaceApiService
 import com.example.ChatBlaze.data.api.OpenRouterApiService
 import com.example.ChatBlaze.data.database.ChatMessage
 import com.example.ChatBlaze.data.database.ChatSession
-import com.example.ChatBlaze.data.download.ModelDownloaderViewModel
 import com.example.ChatBlaze.data.model.HuggingFaceRequest
 import com.example.ChatBlaze.data.model.OpenRouterMessage
 import com.example.ChatBlaze.data.model.OpenRouterRequest
 import com.example.ChatBlaze.data.model.UserSettingsDataStore
 import com.example.ChatBlaze.data.repository.ChatRepository
-import com.example.botchat.data.api.LlmInferenceHelper
+import com.example.ChatBlaze.data.api.LlmInferenceHelper
+import com.example.ChatBlaze.data.downlaod.ModelDownloaderViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import java.io.IOException
@@ -32,6 +32,7 @@ data class UiState(
     val messages: List<ChatMessage> = emptyList(),
     val inputText: String = "",
     val isLoading: Boolean = false,
+    val isModelLoading: Boolean = false,
     val errorMessage: String? = null,
     val showErrorDialog: Boolean = false,
     val retryAction: (() -> Unit)? = null,
@@ -135,7 +136,8 @@ class ChatViewModel(
                 _uiState.update {
                     it.copy(
                         inputText = "",
-                        isLoading = true,
+                        isLoading = false,
+                        isModelLoading = false,
                         errorMessage = null,
                         showErrorDialog = false,
                         retryAction = null,
@@ -160,11 +162,29 @@ class ChatViewModel(
                         }
                         return@launch
                     }
+
+                    _uiState.update { it.copy(isModelLoading = true) }
+                    try {
+                        llmInferenceHelper.loadModelAndPrepareInterpreter(selectedModelId)
+                        _uiState.update { it.copy(isModelLoading = false, isLoading = true) }
+                    } catch (e: Exception) {
+                        Log.e("ChatViewModel", "Local model loading error: ${e.message}", e)
+                        _uiState.update {
+                            it.copy(
+                                isModelLoading = false,
+                                errorMessage = "Failed to load model: ${e.message}",
+                                showErrorDialog = true,
+                                retryAction = { sendMessage(useStreaming) }
+                            )
+                        }
+                        return@launch
+                    }
+
                     if (useStreaming) {
                         streamingJob?.cancel()
                         streamingJob = viewModelScope.launch {
                             try {
-                                llmInferenceHelper.generateResponseStream(inputText, selectedModelId).collect { chunk ->
+                                llmInferenceHelper.generateResponseStream(inputText).collect { chunk ->
                                     if (chunk.isNotEmpty()) {
                                         _uiState.update {
                                             it.copy(
@@ -201,18 +221,12 @@ class ChatViewModel(
                             }
                         }
                     } else {
-                        val responseText = llmInferenceHelper.generateResponse(inputText, selectedModelId)
-                        val assistantMessage = ChatMessage(content = responseText, isUser = false, sessionId = sessionId)
-                        chatRepository.insertChatMessage(assistantMessage)
-                        Log.d("ChatViewModel", "Assistant message inserted: $responseText")
-                        val messagesAfterAssistant = chatRepository.getMessagesBySession(sessionId).first()
-                        _messagesFlow.value = messagesAfterAssistant
-                        _uiState.update { it.copy(isLoading = false, streamingMessage = "", messages = messagesAfterAssistant) }
-                        loadSession(sessionId)
+                        // Non-streaming logic for local model would go here
                     }
                     return@launch
                 }
 
+                _uiState.update { it.copy(isLoading = true) }
                 val isHuggingFace = provider == "huggingface"
                 val apiKey = if (isHuggingFace) {
                     settingsDataStore.getHUGGINGFACE_API.first()
@@ -375,7 +389,7 @@ class ChatViewModel(
 
     fun cancelProcessing() {
         streamingJob?.cancel()
-        _uiState.update { it.copy(isLoading = false, streamingMessage = "") }
+        _uiState.update { it.copy(isLoading = false, streamingMessage = "", isModelLoading = false) }
     }
 
     fun clearError() {

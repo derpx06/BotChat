@@ -7,7 +7,7 @@ import androidx.core.net.toUri
 class ModelDownloader(private val context: Context) {
     private val downloadManager = context.getSystemService(DownloadManager::class.java)
 
-    fun downloadModel(model: DownloadableModel): Long {
+    fun downloadModel(model: Model): Long {
         val request = DownloadManager.Request(model.url.toUri())
             .setMimeType("application/octet-stream")
             .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)

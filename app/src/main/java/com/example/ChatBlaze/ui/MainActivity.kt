@@ -1,9 +1,12 @@
 package com.example.ChatBlaze.ui
 
 import BotChatTheme
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,14 +22,23 @@ import com.example.ChatBlaze.ui.components.ModelScreen
 import com.example.ChatBlaze.ui.components.chat.ChatScreen
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModelFactory
-import com.example.botchat.ui.ModelDownloaderScreen
+import com.example.ChatBlaze.data.downlaod.ModelDownloaderScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    // --- ADD THIS PERMISSION LAUNCHER ---
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        askNotificationPermission()
+
         setContent {
             val settingViewModel: SettingViewModel = viewModel(
                 factory = SettingViewModelFactory(UserSettingsDataStore(this))
@@ -39,6 +51,13 @@ class MainActivity : ComponentActivity() {
                     modelDao = modelDao
                 )
             }
+        }
+    }
+
+    // --- ADD THIS FUNCTION ---
+    private fun askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 }

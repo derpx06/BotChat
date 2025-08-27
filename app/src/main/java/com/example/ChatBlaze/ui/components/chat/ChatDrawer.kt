@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -37,10 +38,7 @@ import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
-// --- ENUMS AND CONSTANTS ---
-
 private enum class DrawerState { Open, Closed }
-// Added ModelDownloader to the list of possible screens
 private enum class Screen { Chat, Settings, Models, ClearChat, ModelDownloader }
 
 private val DrawerWidth = 250.dp
@@ -51,8 +49,9 @@ fun ChatDrawer(
     chatViewModel: ChatViewModel,
     settingViewModel: SettingViewModel,
     onNavigateToModels: () -> Unit,
-    onNavigateToDownloader: () -> Unit, // Added new navigation lambda
+    onNavigateToDownloader: () -> Unit,
     modelDao: modelDao,
+    isModelLoading: Boolean,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -114,7 +113,7 @@ fun ChatDrawer(
                 when (screen) {
                     Screen.Settings -> settingViewModel.toggleSettings()
                     Screen.Models -> onNavigateToModels()
-                    Screen.ModelDownloader -> onNavigateToDownloader() // Handle new screen
+                    Screen.ModelDownloader -> onNavigateToDownloader()
                     Screen.ClearChat -> chatViewModel.clearMessages()
                     Screen.Chat -> {}
                 }
@@ -162,7 +161,8 @@ fun ChatDrawer(
                 settingViewModel = settingViewModel,
                 onNavigateToModels = onNavigateToModels,
                 onDrawerClicked = ::toggleDrawer,
-                modelDao = modelDao
+                modelDao = modelDao,
+                isModelLoading = isModelLoading,
             )
         }
     }
@@ -266,7 +266,6 @@ private fun ChatDrawerContents(
                 icon = Icons.Outlined.Category,
                 onClick = { onScreenSelected(Screen.Models) }
             )
-            // --- New Navigation Item Added Here ---
             DrawerActionItem(
                 label = "Download Models",
                 icon = Icons.Outlined.Download,
@@ -290,7 +289,7 @@ private fun ChatDrawerContents(
 @Composable
 private fun DrawerActionItem(
     label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit,
     isDestructive: Boolean = false
 ) {

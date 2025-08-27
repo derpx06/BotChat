@@ -109,6 +109,7 @@ private sealed class ParsedContent {
 fun ChatMessages(
     messages: List<ChatMessage>,
     isLoading: Boolean,
+    isModelLoading: Boolean,
     theme: String,
     streamingMessage: String,
     modifier: Modifier = Modifier,
@@ -118,7 +119,7 @@ fun ChatMessages(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(messages.size, isLoading, streamingMessage.isNotEmpty()) {
+    LaunchedEffect(messages.size, isLoading, isModelLoading, streamingMessage.isNotEmpty()) {
         val totalItems = listState.layoutInfo.totalItemsCount
         if (totalItems > 0) {
             coroutineScope.launch {
@@ -153,7 +154,7 @@ fun ChatMessages(
             .windowInsetsPadding(WindowInsets.statusBars)
     ) {
         when {
-            messages.isEmpty() && !isLoading && streamingMessage.isEmpty() -> Box(
+            messages.isEmpty() && !isLoading && !isModelLoading && streamingMessage.isEmpty() -> Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = PaddingExtraLarge),
@@ -190,6 +191,11 @@ fun ChatMessages(
                             )
                             .padding(vertical = 4.dp)
                     )
+                }
+                if (isModelLoading) {
+                    item(key = "model_loading_indicator") {
+                        ModelLoadingIndicator(isDarkTheme = isDarkTheme)
+                    }
                 }
                 if ((isLoading || streamingMessage.isNotEmpty())) {
                     item(key = "model_response_item") {
@@ -635,6 +641,50 @@ fun TypingIndicator(
     }
 }
 
+@Composable
+fun ModelLoadingIndicator(isDarkTheme: Boolean) {
+    val bubbleShape = RoundedCornerShape(
+        topStart = 8.dp,
+        topEnd = 24.dp,
+        bottomStart = 24.dp,
+        bottomEnd = 24.dp
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(bubbleShape)
+                .background(
+                    brush = if (isDarkTheme) ResponseGradientDarkMode else ResponseGradientLightMode,
+                    alpha = 0.95f
+                )
+                .border(
+                    width = 0.55.dp,
+                    brush = if (isDarkTheme) BottomFadeGradientDark else BottomFadeGradientLight,
+                    shape = bubbleShape
+                )
+                .padding(horizontal = PaddingLarge, vertical = PaddingLarge)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TypingIndicator(isDarkTheme = isDarkTheme)
+                Text(
+                    text = "Loading model...",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = if (isDarkTheme) PureWhite else SlateBlack,
+                        fontStyle = FontStyle.Italic
+                    )
+                )
+            }
+        }
+    }
+}
+
 private fun parseThoughtAndResponse(content: String): Pair<String?, String> {
     val thinkingRegex = Regex("""◁think▷(.*?)◁/think▷""", RegexOption.DOT_MATCHES_ALL)
     val match = thinkingRegex.find(content)
@@ -956,6 +1006,7 @@ fun ChatMessagesEmptyLightPreview() {
         ChatMessages(
             messages = emptyList(),
             isLoading = false,
+            isModelLoading = false,
             theme = "default",
             streamingMessage = "",
             isDarkTheme = false
@@ -991,6 +1042,7 @@ fun ChatMessagesWithContentLightPreview() {
         ChatMessages(
             messages = sampleMessages,
             isLoading = false,
+            isModelLoading = false,
             theme = "default",
             streamingMessage = "",
             isDarkTheme = false
@@ -1019,6 +1071,7 @@ fun ChatMessagesLoadingDarkPreview() {
         ChatMessages(
             messages = sampleMessages,
             isLoading = true,
+            isModelLoading = false,
             theme = "gradient",
             streamingMessage = "",
             isDarkTheme = true
@@ -1047,6 +1100,7 @@ fun ChatMessagesStreamingDarkPreview() {
         ChatMessages(
             messages = sampleMessages,
             isLoading = false,
+            isModelLoading = false,
             theme = "default",
             streamingMessage = "◁think▷The user is asking about Kotlin.◁/think▷Kotlin is a programming language...",
             isDarkTheme = true

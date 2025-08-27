@@ -20,12 +20,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ChatBlaze.data.downlaod.DownloadStatus
 import com.example.ChatBlaze.data.downlaod.Model
-import com.example.ChatBlaze.data.downlaod.ModelDownloadStatusType
-import com.example.ChatBlaze.data.download.ModelDownloaderViewModel
 import com.example.ChatBlaze.data.model.UserSettingsDataStore
 
+import com.example.ChatBlaze.data.downlaod.ModelDownloaderViewModel
 import kotlinx.coroutines.launch
+import java.text.DecimalFormat
 
 @Composable
 fun LocalSettingsSubTab(
@@ -59,9 +60,10 @@ fun LocalSettingsSubTab(
             )
             if (uiState.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = MaterialTheme.colorScheme.primary
                 )
-            } else if (uiState.models.none { it.downloadStatus.status == ModelDownloadStatusType.SUCCEEDED }) {
+            } else if (uiState.models.none { it.status == DownloadStatus.DOWNLOADED }) {
                 Text(
                     text = "No downloaded models available.",
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -105,7 +107,8 @@ fun LocalSettingsSubTab(
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = uiState.models.find { it.id == selectedLocalModel }?.name ?: "Select a model",
+                                            text = uiState.models.find { it.id == selectedLocalModel }?.name
+                                                ?: "Select a model",
                                             style = MaterialTheme.typography.bodyMedium.copy(
                                                 fontWeight = FontWeight.Medium,
                                                 fontSize = 14.sp,
@@ -116,7 +119,8 @@ fun LocalSettingsSubTab(
                                         )
                                         if (selectedLocalModel.isNotEmpty()) {
                                             Text(
-                                                text = uiState.models.find { it.id == selectedLocalModel }?.description ?: "",
+                                                text = uiState.models.find { it.id == selectedLocalModel }?.description
+                                                    ?: "",
                                                 style = MaterialTheme.typography.bodySmall.copy(
                                                     fontSize = 12.sp,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -140,7 +144,7 @@ fun LocalSettingsSubTab(
                                     .background(MaterialTheme.colorScheme.surfaceContainer)
                                     .clip(RoundedCornerShape(8.dp))
                             ) {
-                                uiState.models.filter { it.downloadStatus.status == ModelDownloadStatusType.SUCCEEDED }.forEach { model ->
+                                uiState.models.filter { it.status == DownloadStatus.DOWNLOADED }.forEach { model ->
                                     DropdownMenuItem(
                                         text = {
                                             Column {
@@ -181,7 +185,7 @@ fun LocalSettingsSubTab(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(uiState.models.filter { it.downloadStatus.status == ModelDownloadStatusType.SUCCEEDED }) { model ->
+                    items(uiState.models.filter { it.status == DownloadStatus.DOWNLOADED }) { model ->
                         LocalModelCard(model = model)
                     }
                 }
@@ -234,12 +238,21 @@ fun LocalModelCard(model: Model) {
                 )
             }
             Text(
-                text = model.size,
+                text = formatSize(model.size),
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
+    }
+}
+
+private fun formatSize(bytes: Long): String {
+    val df = DecimalFormat("#.##")
+    return when {
+        bytes >= 1_000_000_000 -> "${df.format(bytes / 1_000_000_000.0)} GB"
+        bytes >= 1_000_000 -> "${df.format(bytes / 1_000_000.0)} MB"
+        else -> "$bytes B"
     }
 }

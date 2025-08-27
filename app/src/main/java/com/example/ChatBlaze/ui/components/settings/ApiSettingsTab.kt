@@ -1,6 +1,5 @@
 package com.example.ChatBlaze.ui.components.settings
 
-import android.content.Context
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -24,9 +23,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ChatBlaze.data.database.modelDatabase.modelDao
 import com.example.ChatBlaze.data.model.UserSettingsDataStore
 import com.example.ChatBlaze.data.downlaod.DefaultDownloadRepository
-import com.example.ChatBlaze.data.download.ModelDownloaderViewModel
 import com.example.ChatBlaze.ui.theme.Transparent
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
+import com.example.ChatBlaze.data.downlaod.ModelDownloaderViewModel
 
 
 @Composable

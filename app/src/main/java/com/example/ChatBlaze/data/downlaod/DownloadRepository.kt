@@ -3,6 +3,7 @@ package com.example.ChatBlaze.data.downlaod
 import android.content.Context
 import androidx.work.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
 import java.util.UUID
 
 interface DownloadRepository {
@@ -11,16 +12,21 @@ interface DownloadRepository {
     fun getDownloadProgress(workId: UUID): Flow<WorkInfo>
 }
 
-class DefaultDownloadRepository(context: Context) : DownloadRepository {
+class DefaultDownloadRepository(private val context: Context) : DownloadRepository {
     private val workManager = WorkManager.getInstance(context)
 
     override fun downloadModel(model: Model): UUID {
         val inputData = workDataOf(
             KEY_MODEL_URL to model.url,
-            KEY_MODEL_ID to model.id
+            KEY_MODEL_ID to model.id,
+            KEY_MODEL_NAME to model.name,
+            KEY_MODEL_SIZE to model.size
         )
 
-        val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED).build()
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
         val downloadWorkRequest = OneTimeWorkRequestBuilder<DownloadWorker>()
             .setInputData(inputData)
             .setConstraints(constraints)
@@ -41,6 +47,6 @@ class DefaultDownloadRepository(context: Context) : DownloadRepository {
     }
 
     override fun getDownloadProgress(workId: UUID): Flow<WorkInfo> {
-        return workManager.getWorkInfoByIdFlow(workId) as Flow<WorkInfo>
+        return workManager.getWorkInfoByIdFlow(workId).filterNotNull()
     }
 }

@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.ChatBlaze.data.downlaod.DefaultDownloadRepository
-import com.example.ChatBlaze.data.download.ModelDownloaderViewModel
+import com.example.ChatBlaze.data.downlaod.ModelDownloaderViewModel
 import com.example.ChatBlaze.data.model.UserSettingsDataStore
 import com.example.ChatBlaze.data.repository.ChatRepository
 

@@ -12,14 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ChatBlaze.data.database.modelDatabase.modelDao
-import com.example.ChatBlaze.data.model.UserSettingsDataStore
-import com.example.ChatBlaze.data.repository.ChatRepository
 import com.example.ChatBlaze.ui.components.TopBar
 import com.example.ChatBlaze.ui.components.settings.SettingsSheetBottom
 import com.example.ChatBlaze.ui.theme.*
@@ -38,7 +33,8 @@ fun ChatScreenContent(
     onNavigateToModels: () -> Unit,
     onDrawerClicked: () -> Unit,
     modelDao: modelDao,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isModelLoading: Boolean
 ) {
     val uiState by chatViewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = settingViewModel.getDarkModeEnabled()
@@ -84,7 +80,8 @@ fun ChatScreenContent(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    isDarkTheme = isDarkTheme
+                    isDarkTheme = isDarkTheme,
+                    isModelLoading = isModelLoading
                 )
             }
             ChatInputSection(

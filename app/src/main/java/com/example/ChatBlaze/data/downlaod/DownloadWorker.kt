@@ -1,113 +1,116 @@
 package com.example.ChatBlaze.data.downlaod
 
-import android.R
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import android.os.Environment
-import androidx.core.app.NotificationCompat
+import android.util.Log
 import androidx.work.CoroutineWorker
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okio.buffer
+import okio.sink
 import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
+import java.io.IOException
 
-const val CHANNEL_ID = "download_channel"
-const val NOTIFICATION_ID = 1
-const val KEY_MODEL_URL = "model_url"
-const val KEY_MODEL_ID = "model_id"
-const val KEY_PROGRESS = "progress"
-const val KEY_ERROR_MSG = "error_msg"
+const val KEY_MODEL_URL = "key_model_url"
+const val KEY_MODEL_ID = "key_model_id"
+const val KEY_MODEL_NAME = "key_model_name"
+const val KEY_MODEL_SIZE = "key_model_size"
+const val KEY_PROGRESS = "key_progress"
+const val KEY_DOWNLOADED_BYTES = "key_downloaded_bytes"
+const val KEY_ERROR_MSG = "key_error_msg"
 
-class DownloadWorker(appContext: Context, workerParams: WorkerParameters) : CoroutineWorker(appContext, workerParams) {
+private const val TAG = "DownloadWorker"
+
+class DownloadWorker(
+    context: Context,
+    workerParams: WorkerParameters
+) : CoroutineWorker(context, workerParams) {
+
+    private val okHttpClient = OkHttpClient()
+
     override suspend fun doWork(): Result {
-        val urlString = inputData.getString(KEY_MODEL_URL) ?: return Result.failure()
-        val modelId = inputData.getString(KEY_MODEL_ID) ?: return Result.failure()
-        val file = getDestinationFile(applicationContext, modelId)
+        val modelUrl = inputData.getString(KEY_MODEL_URL)
+        val modelId = inputData.getString(KEY_MODEL_ID)
+        val modelSize = inputData.getLong(KEY_MODEL_SIZE, -1L)
 
-        createNotificationChannel(applicationContext)
+        if (modelUrl == null || modelId == null) {
+            return Result.failure(workDataOf(KEY_ERROR_MSG to "Missing model URL or ID"))
+        }
 
-        var result: Result = Result.failure()
+        val destinationFile = getDestinationFile(modelId, modelUrl)
 
-        try {
-            withContext(Dispatchers.IO) {
-                val url = URL(urlString)
-                val connection = url.openConnection() as HttpURLConnection
-                val existingLength = file.length()
-                if (existingLength > 0) {
-                    connection.setRequestProperty("Range", "bytes=$existingLength-")
-                }
-                connection.connect()
+        return try {
+            downloadFile(modelUrl, destinationFile, modelSize)
+            if (isStopped) {
+                destinationFile.delete()
+                Result.failure()
+            } else {
+                Result.success()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Download failed for model '$modelId'", e)
+            destinationFile.delete() // Clean up partial file on failure
+            Result.failure(workDataOf(KEY_ERROR_MSG to "Download failed: ${e.message}"))
+        }
+    }
 
-                val fileLength = connection.contentLength + existingLength
-                val input = connection.inputStream
-                val output = FileOutputStream(file, existingLength > 0)
-                val data = ByteArray(4096)
-                var total = existingLength
-                var count: Int
+    private suspend fun downloadFile(url: String, destinationFile: File, totalSize: Long) {
+        withContext(Dispatchers.IO) {
+            val request = Request.Builder().url(url).build()
+            val response = okHttpClient.newCall(request).execute()
 
-                while (input.read(data).also { count = it } != -1) {
+            if (!response.isSuccessful) throw IOException("Server error: ${response.code}")
+
+            val body = response.body ?: throw IOException("Response body is null")
+            val source = body.source()
+
+            // Set initial progress
+            setProgress(workDataOf(KEY_PROGRESS to 0, KEY_DOWNLOADED_BYTES to 0L))
+
+            destinationFile.sink().buffer().use { sink ->
+                val buffer = okio.Buffer()
+                var bytesRead = 0L
+                var lastProgress = -1
+                var lastUpdateTime = System.currentTimeMillis()
+
+                var read: Long
+                while (source.read(buffer, 8192L).also { read = it } != -1L) {
                     if (isStopped) {
-                        output.close()
-                        input.close()
-                        file.delete()
-                        result = Result.failure()
-                        return@withContext
+                        Log.d(TAG, "Worker has been stopped/cancelled.")
+                        break
                     }
-                    total += count
-                    output.write(data, 0, count)
-                    val progress = (total * 100 / fileLength).toInt()
-                    setProgress(workDataOf(KEY_PROGRESS to progress))
-                    updateNotification(progress, modelId)
-                }
 
-                output.flush()
-                output.close()
-                input.close()
+                    sink.write(buffer, read)
+                    bytesRead += read
 
-                if (file.length() != fileLength) {
-                    file.delete()
-                    result = Result.failure(workDataOf(KEY_ERROR_MSG to "Incomplete download"))
-                } else {
-                    result = Result.success()
+                    val progress = if (totalSize > 0) ((bytesRead * 100) / totalSize).toInt() else 0
+
+                    val currentTime = System.currentTimeMillis()
+                    if (progress != lastProgress || currentTime - lastUpdateTime >= 500) {
+                        lastProgress = progress
+                        lastUpdateTime = currentTime
+
+                        Log.d(TAG, "Progress: $progress%, Bytes: $bytesRead / $totalSize")
+                        setProgress(workDataOf(KEY_PROGRESS to progress, KEY_DOWNLOADED_BYTES to bytesRead))
+                    }
                 }
             }
-            return result
-        } catch (e: Exception) {
-            file.delete()
-            return Result.failure(workDataOf(KEY_ERROR_MSG to e.message))
-        } finally {
-            WorkManager.getInstance(applicationContext).cancelAllWorkByTag(modelId)
+
+            if (!isStopped) {
+                val finalBytes = if (totalSize > 0) totalSize else destinationFile.length()
+                setProgress(workDataOf(KEY_PROGRESS to 100, KEY_DOWNLOADED_BYTES to finalBytes))
+            }
         }
     }
 
-    private fun getDestinationFile(context: Context, modelId: String): File {
-        val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)!!
-        return File(dir, "$modelId.tflite")
-    }
-
-    private fun createNotificationChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, "Model Downloads", NotificationManager.IMPORTANCE_LOW)
-            context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
-        }
-    }
-
-    private fun updateNotification(progress: Int, modelId: String) {
-        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setContentTitle("Downloading $modelId")
-            .setContentText("$progress% complete")
-            .setSmallIcon(R.drawable.stat_sys_download)
-            .setProgress(100, progress, false)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-        val nm = applicationContext.getSystemService(NotificationManager::class.java)
-        nm.notify(NOTIFICATION_ID + modelId.hashCode(), notification)
+    private fun getDestinationFile(modelId: String, modelUrl: String): File {
+        val dir = applicationContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)!!
+        if (!dir.exists()) dir.mkdirs()
+        val extension = modelUrl.substringAfterLast('.', "bin")
+        return File(dir, "$modelId.$extension")
     }
 }
