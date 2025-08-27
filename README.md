@@ -1,6 +1,6 @@
-# BotChat: AI Chat Assistant
+# ChatBlaze: AI Chat Assistant
 
-![BotChat Logo](https://via.placeholder.com/150?text=BotChat)
+![Chatblaze Logo](https://via.placeholder.com/150?text=BotChat)
 *Work in Progress: An Android app for AI-driven conversations using cloud APIs, local servers, or offline LLMs.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -8,7 +8,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.0-blue.svg)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-2.0.0-orange.svg)](https://developer.android.com/jetpack/compose)
 
-BotChat is an open-source AI chat app for Android, enabling users to engage with AI via OpenRouter or HuggingFace APIs, a local server, or offline LLMs. Select from various language models and enjoy a modern, responsive UI built with Jetpack Compose.
+ChatBlaze is an open-source AI chat app for Android, enabling users to engage with AI via OpenRouter or HuggingFace APIs, a local server, or offline LLMs. Select from various language models and enjoy a modern, responsive UI built with Jetpack Compose.
 
 <table>
   <tr>
