@@ -1,6 +1,7 @@
 # ChatBlaze: AI Chat Assistant
 
-![Chatblaze Logo](https://via.placeholder.com/150?text=BotChat)
+<img width="256" height="256" alt="bot-2 svg" src="https://github.com/user-attachments/assets/60312e1a-7c5b-4108-bf72-b8fde275e644" />
+
 *Work in Progress: An Android app for AI-driven conversations using cloud APIs, local servers, or offline LLMs.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
