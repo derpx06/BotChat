@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ChatBlaze.data.database.modelDatabase.modelDao
-import com.example.ChatBlaze.ui.components.TopBar
 import com.example.ChatBlaze.ui.components.settings.SettingsSheetBottom
 import com.example.ChatBlaze.ui.theme.*
 import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModel

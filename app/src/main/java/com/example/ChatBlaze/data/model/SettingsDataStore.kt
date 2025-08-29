@@ -28,8 +28,16 @@ data class UserSettingsDataStore(private val context: Context) {
         private val THEME = stringPreferencesKey("theme")
         private val SELECTED_LOCAL_MODEL = stringPreferencesKey("selected_local_model")
 
-    }
+        private val Temprature = floatPreferencesKey("temperature")
+        private val maxTokens = intPreferencesKey("max_tokens")
 
+    }
+    val getTemprature:Flow<Float> = context.dataStore.data.map {
+        preferences -> preferences[Temprature] ?: 0.7f
+    }
+    val getMaxTokens:Flow<Int> = context.dataStore.data.map {
+        preferences -> preferences[maxTokens] ?: 300
+    }
     val getDarkModeSetting: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[DARK_MODE_SETTING] ?: "system" }
 
@@ -131,7 +139,16 @@ data class UserSettingsDataStore(private val context: Context) {
             preferences[SELECTED_LOCAL_MODEL] = modelId
         }
     }
-
+    suspend fun updateTemperature(temp: Float) {
+        context.dataStore.edit { settings ->
+            settings[Temprature] = temp
+        }
+    }
+    suspend fun updateMaxNewTokens(tokens: Int) {
+        context.dataStore.edit { settings ->
+            settings[maxTokens] = tokens
+        }
+    }
     suspend fun updateTheme(theme: String) {
         context.dataStore.edit { preferences -> preferences[THEME] = theme }
     }

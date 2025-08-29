@@ -1,4 +1,4 @@
-package com.example.ChatBlaze.ui.components
+package com.example.ChatBlaze.ui.components.chat
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +31,7 @@ fun TopBar(
     title: String = "AI Assistant",
     onMenuClick: () -> Unit = {},
     isDarkTheme: Boolean = false,
+    onSeetingsClicked:()->Unit = {},
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "TopBarEffects")
@@ -114,10 +117,19 @@ fun TopBar(
                         fontSize = 20.sp,
                         letterSpacing = 0.5.sp
                     ),
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .weight(1f)
                 )
+                IconButton(onClick = onSeetingsClicked) {
+                    Icon(
+                        imageVector = Icons.Default.AcUnit,
+                        contentDescription = "Customize Model Response",
+                        tint = if (isDarkTheme) NeonBlue else Aquamarine
+                    )
+                }
+
             }
         }
     }

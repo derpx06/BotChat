@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.Flow
 import java.io.IOException
 import java.net.UnknownHostException
 
+private const val MAX_CONTEXT_TOKENS = 4096
+
 data class UiState(
     val messages: List<ChatMessage> = emptyList(),
     val inputText: String = "",
@@ -130,6 +132,9 @@ class ChatViewModel(
                 chatRepository.insertChatMessage(userMessage)
                 Log.d("ChatViewModel", "User message inserted: $inputText")
 
+                // Fetch the updated history to build context for the model
+                val history = chatRepository.getMessagesBySession(sessionId).first()
+
                 val messagesAfterUser = chatRepository.getMessagesBySession(sessionId).first()
                 Log.d("ChatViewModel", "Messages after user message for session $sessionId: ${messagesAfterUser.size}, Contents: ${messagesAfterUser.map { it.content }}")
                 _messagesFlow.value = messagesAfterUser
@@ -184,7 +189,8 @@ class ChatViewModel(
                         streamingJob?.cancel()
                         streamingJob = viewModelScope.launch {
                             try {
-                                llmInferenceHelper.generateResponseStream(inputText).collect { chunk ->
+                                val prompt = buildLocalModelPrompt(history)
+                                llmInferenceHelper.generateResponseStream(prompt).collect { chunk ->
                                     if (chunk.isNotEmpty()) {
                                         _uiState.update {
                                             it.copy(
@@ -259,12 +265,7 @@ class ChatViewModel(
                     streamingJob = viewModelScope.launch {
                         val request = OpenRouterRequest(
                             model = model,
-                            messages = listOf(
-                                OpenRouterMessage(
-                                    role = "user",
-                                    content = inputText
-                                )
-                            ),
+                            messages = buildOpenRouterHistory(history),
                             maxTokens = 5000,
                             stream = true,
                             temperature = 0.7
@@ -313,7 +314,7 @@ class ChatViewModel(
                     val responseText = if (!isHuggingFace) {
                         val request = OpenRouterRequest(
                             model = model,
-                            messages = listOf(OpenRouterMessage(role = "user", content = inputText)),
+                            messages = buildOpenRouterHistory(history),
                             maxTokens = 1000,
                             stream = false,
                             temperature = 0.7
@@ -326,7 +327,7 @@ class ChatViewModel(
                             ?: throw IOException("No response received from OpenRouter")
                     } else {
                         val request = HuggingFaceRequest(
-                            inputs = inputText,
+                            inputs = buildLocalModelPrompt(history),
                             parameters = mapOf(
                                 "max_new_tokens" to 100000,
                                 "temperature" to 0.7
@@ -406,5 +407,46 @@ class ChatViewModel(
 
     fun startNewChat() {
         startNewSession()
+    }
+
+    private fun buildLocalModelPrompt(history: List<ChatMessage>): String {
+        return buildPrompt(
+            history = history,
+            toString = { messages ->
+                buildString {
+                    append("You are a helpful AI assistant.\n\n")
+                    messages.forEach { message ->
+                        append(if (message.isUser) "User: ${message.content}\n" else "Assistant: ${message.content}\n")
+                    }
+                    append("Assistant:")
+                }
+            }
+        )
+    }
+
+    private fun buildOpenRouterHistory(history: List<ChatMessage>): List<OpenRouterMessage> {
+        return buildPrompt(
+            history = history,
+            toString = { messages ->
+                val openRouterMessages = mutableListOf<OpenRouterMessage>()
+                openRouterMessages.add(OpenRouterMessage(role = "system", content = "You are a helpful AI assistant."))
+                messages.forEach {
+                    openRouterMessages.add(OpenRouterMessage(role = if (it.isUser) "user" else "assistant", content = it.content))
+                }
+                openRouterMessages
+            }
+        )
+    }
+
+    private fun <T> buildPrompt(history: List<ChatMessage>, toString: (List<ChatMessage>) -> T): T {
+        val mutableHistory = history.toMutableList()
+        var tokenCount = mutableHistory.sumOf { it.content.length / 4 }
+
+        while (tokenCount > MAX_CONTEXT_TOKENS && mutableHistory.size > 2) {
+            mutableHistory.removeAt(1)
+            tokenCount = mutableHistory.sumOf { it.content.length / 4 }
+        }
+
+        return toString(mutableHistory)
     }
 }

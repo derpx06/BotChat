@@ -39,7 +39,17 @@ class SettingViewModel(
             else -> isSystemInDarkTheme()
         }
     }
+    fun updateTemperature(temp: Float) {
+        viewModelScope.launch {
+            settingsDataStore.updateTemperature(temp)
+        }
+    }
 
+    fun updateMaxNewTokens(tokens: Int) {
+        viewModelScope.launch {
+            settingsDataStore.updateMaxNewTokens(tokens)
+        }
+    }
     fun updateDarkModeSetting(setting: String) {
         viewModelScope.launch {
             settingsDataStore.updateDarkModeSetting(setting)
