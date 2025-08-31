@@ -17,10 +17,13 @@ import androidx.room.PrimaryKey
     ],
     indices = [Index("sessionId")]
 )
+
 data class ChatMessage(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val sessionId: Long,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val content: String,
     val isUser: Boolean,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val sessionId: Long,
+    val attachmentUris: List<String> = emptyList()
 )

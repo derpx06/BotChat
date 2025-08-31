@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ChatBlaze.data.database.modelDatabase.modelDao
 import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModel
@@ -253,68 +254,64 @@ private fun ChatDrawerContents(
             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(8.dp))
 
-            DrawerActionItem(
-                label = "New Chat",
-                icon = Icons.Outlined.AddComment,
-                onClick = {
-                    chatViewModel.startNewChat()
-                    onScreenSelected(Screen.Chat)
-                }
-            )
-            DrawerActionItem(
-                label = "Models",
-                icon = Icons.Outlined.Category,
-                onClick = { onScreenSelected(Screen.Models) }
-            )
-            DrawerActionItem(
-                label = "Download Models",
-                icon = Icons.Outlined.Download,
-                onClick = { onScreenSelected(Screen.ModelDownloader) }
-            )
-            DrawerActionItem(
-                label = "Settings",
-                icon = Icons.Outlined.Settings,
-                onClick = { onScreenSelected(Screen.Settings) }
-            )
-            DrawerActionItem(
-                label = "Clear History",
-                icon = Icons.Outlined.DeleteSweep,
-                onClick = { onScreenSelected(Screen.ClearChat) },
-                isDestructive = true
-            )
+            Row(
+                modifier = Modifier
+                    .width(DrawerWidth)
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DrawerIconButton(
+                    label = "New Chat",
+                    icon = Icons.Outlined.AddComment,
+                    onClick = {
+                        chatViewModel.startNewChat()
+                        onScreenSelected(Screen.Chat)
+                    }
+                )
+                DrawerIconButton(
+                    label = "Download",
+                    icon = Icons.Outlined.Download,
+                    onClick = { onScreenSelected(Screen.ModelDownloader) }
+                )
+                DrawerIconButton(
+                    label = "Settings",
+                    icon = Icons.Outlined.Settings,
+                    onClick = { onScreenSelected(Screen.Settings) }
+                )
+                DrawerIconButton(
+                    label = "Clear",
+                    icon = Icons.Outlined.DeleteSweep,
+                    onClick = { onScreenSelected(Screen.ClearChat) },
+                    isDestructive = true
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun DrawerActionItem(
+private fun DrawerIconButton(
     label: String,
     icon: ImageVector,
     onClick: () -> Unit,
     isDestructive: Boolean = false
 ) {
     val contentColor = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.textButtonColors(contentColor = contentColor)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
+        IconButton(onClick = onClick) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
+                tint = contentColor,
                 modifier = Modifier.size(28.dp)
             )
-            Spacer(modifier = Modifier.width(20.dp))
-            Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold))
         }
+
     }
 }
 
@@ -322,9 +319,8 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
     return start + (stop - start) * fraction
 }
 
-
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun DrawerActionItemPreview() {
-    DrawerActionItem(label = "New Chat", icon = Icons.Outlined.AddComment, onClick = {})
+fun DrawerIconButtonPreview() {
+    DrawerIconButton(label = "New Chat", icon = Icons.Outlined.AddComment, onClick = {})
 }

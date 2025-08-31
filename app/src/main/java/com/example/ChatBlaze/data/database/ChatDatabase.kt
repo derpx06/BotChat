@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
-@Database(entities = [ChatMessage::class, ChatSession::class], version = 2, exportSchema = false)
+@Database(entities = [ChatMessage::class, ChatSession::class], version = 3, exportSchema = false)
+@TypeConverters(UriConverters::class)
 abstract class ChatDatabase : RoomDatabase() {
     abstract fun chatDao(): ChatDao
 
@@ -28,3 +30,4 @@ abstract class ChatDatabase : RoomDatabase() {
         }
     }
 }
+

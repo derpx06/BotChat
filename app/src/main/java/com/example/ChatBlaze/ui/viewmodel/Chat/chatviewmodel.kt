@@ -1,18 +1,11 @@
 package com.example.ChatBlaze.ui.viewmodel.Chat
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import android.util.Log
 import com.example.ChatBlaze.data.api.HuggingFaceApiService
+import com.example.ChatBlaze.data.api.LlmInferenceHelper
 import com.example.ChatBlaze.data.api.OpenRouterApiService
 import com.example.ChatBlaze.data.database.ChatMessage
 import com.example.ChatBlaze.data.database.ChatSession
@@ -21,14 +14,28 @@ import com.example.ChatBlaze.data.model.OpenRouterMessage
 import com.example.ChatBlaze.data.model.OpenRouterRequest
 import com.example.ChatBlaze.data.model.UserSettingsDataStore
 import com.example.ChatBlaze.data.repository.ChatRepository
-import com.example.ChatBlaze.data.api.LlmInferenceHelper
 import com.example.ChatBlaze.data.downlaod.ModelDownloaderViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.UnknownHostException
 
 private const val MAX_CONTEXT_TOKENS = 4096
+
+enum class FileType { IMAGE, PDF, OTHER }
+
+data class SelectedFile(
+    val uri: Uri,
+    val type: FileType,
+    val name: String
+)
 
 data class UiState(
     val messages: List<ChatMessage> = emptyList(),
@@ -55,6 +62,10 @@ class ChatViewModel(
     }
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+    private val _selectedFiles = MutableStateFlow<List<SelectedFile>>(emptyList())
+    val selectedFiles: StateFlow<List<SelectedFile>> = _selectedFiles.asStateFlow()
+
     val allSessions: Flow<List<ChatSession>> = chatRepository.getAllChatSessions()
     private var streamingJob: Job? = null
     private val _messagesFlow = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -64,7 +75,6 @@ class ChatViewModel(
         viewModelScope.launch {
             _uiState.collect { state ->
                 chatRepository.getMessagesBySession(state.currentSessionId).collect { messages ->
-                    Log.d("ChatViewModel", "Flow emitted for session ${state.currentSessionId}: ${messages.size} messages, Contents: ${messages.map { it.content }}")
                     _messagesFlow.value = messages
                     _uiState.update { it.copy(messages = messages) }
                 }
@@ -73,17 +83,14 @@ class ChatViewModel(
     }
 
     private fun startNewSession() {
-        Log.d("ChatViewModel", "Preparing new session, not saving yet")
         _uiState.update { it.copy(currentSessionId = 0L, messages = emptyList(), streamingMessage = "") }
         _messagesFlow.value = emptyList()
     }
 
     fun loadSession(sessionId: Long) {
         viewModelScope.launch {
-            Log.d("ChatViewModel", "Loading session with ID: $sessionId")
             _uiState.update { it.copy(currentSessionId = sessionId, streamingMessage = "") }
             val messages = chatRepository.getMessagesBySession(sessionId).first()
-            Log.d("ChatViewModel", "Messages for session $sessionId: ${messages.size}, Contents: ${messages.map { it.content }}")
             _messagesFlow.value = messages
             _uiState.update { it.copy(messages = messages) }
         }
@@ -91,7 +98,6 @@ class ChatViewModel(
 
     fun deleteSession(sessionId: Long) {
         viewModelScope.launch {
-            Log.d("ChatViewModel", "Deleting session with ID: $sessionId")
             chatRepository.deleteSession(sessionId)
             if (_uiState.value.currentSessionId == sessionId) {
                 startNewSession()
@@ -103,9 +109,23 @@ class ChatViewModel(
         _uiState.update { it.copy(inputText = text, errorMessage = null, showErrorDialog = false) }
     }
 
+    fun addFiles(newFiles: List<SelectedFile>) {
+        _selectedFiles.update { currentFiles ->
+            currentFiles + newFiles.filterNot { newFile -> currentFiles.any { it.uri == newFile.uri } }
+        }
+    }
+
+    fun removeFile(fileToRemove: SelectedFile) {
+        _selectedFiles.update { currentFiles ->
+            currentFiles.filterNot { it.uri == fileToRemove.uri }
+        }
+    }
+
     fun sendMessage(useStreaming: Boolean = true) {
         val inputText = _uiState.value.inputText.trim()
-        if (inputText.isBlank()) {
+        val inputFiles = _selectedFiles.value
+
+        if (inputText.isBlank() && inputFiles.isEmpty()) {
             _uiState.update {
                 it.copy(
                     errorMessage = "Message cannot be empty",
@@ -120,23 +140,24 @@ class ChatViewModel(
             try {
                 var sessionId = _uiState.value.currentSessionId
                 if (sessionId == 0L) {
-                    val sessionTitle = inputText.take(50)
+                    val sessionTitle = inputText.take(50).ifBlank { "New Chat" }
                     val session = ChatSession(title = sessionTitle)
                     sessionId = chatRepository.insertChatSession(session)
-                    Log.d("ChatViewModel", "New session created with ID: $sessionId, Title: $sessionTitle")
                     _uiState.update { it.copy(currentSessionId = sessionId) }
                 }
 
-                Log.d("ChatViewModel", "Sending message for session $sessionId: $inputText")
-                val userMessage = ChatMessage(content = inputText, isUser = true, sessionId = sessionId)
+                val attachmentUris = inputFiles.map { it.uri.toString() }
+                val userMessage = ChatMessage(
+                    content = inputText,
+                    isUser = true,
+                    sessionId = sessionId,
+                    attachmentUris = attachmentUris
+                )
                 chatRepository.insertChatMessage(userMessage)
-                Log.d("ChatViewModel", "User message inserted: $inputText")
 
-                // Fetch the updated history to build context for the model
                 val history = chatRepository.getMessagesBySession(sessionId).first()
 
                 val messagesAfterUser = chatRepository.getMessagesBySession(sessionId).first()
-                Log.d("ChatViewModel", "Messages after user message for session $sessionId: ${messagesAfterUser.size}, Contents: ${messagesAfterUser.map { it.content }}")
                 _messagesFlow.value = messagesAfterUser
                 _uiState.update {
                     it.copy(
@@ -150,9 +171,9 @@ class ChatViewModel(
                         messages = messagesAfterUser
                     )
                 }
+                _selectedFiles.value = emptyList()
 
                 val provider = settingsDataStore.getSelectedProvider.first()
-                Log.d("ChatViewModel", "Provider: $provider")
 
                 if (provider == "local") {
                     val selectedModelId = settingsDataStore.getSelectedLocalModel.first()
@@ -173,7 +194,6 @@ class ChatViewModel(
                         llmInferenceHelper.loadModelAndPrepareInterpreter(selectedModelId)
                         _uiState.update { it.copy(isModelLoading = false, isLoading = true) }
                     } catch (e: Exception) {
-                        Log.e("ChatViewModel", "Local model loading error: ${e.message}", e)
                         _uiState.update {
                             it.copy(
                                 isModelLoading = false,
@@ -203,7 +223,6 @@ class ChatViewModel(
                                 val fullResponse = _uiState.value.streamingMessage
                                 val assistantMessage = ChatMessage(content = fullResponse, isUser = false, sessionId = sessionId)
                                 chatRepository.insertChatMessage(assistantMessage)
-                                Log.d("ChatViewModel", "Assistant message inserted: $fullResponse")
                                 val messagesAfterAssistant = chatRepository.getMessagesBySession(sessionId).first()
                                 _messagesFlow.value = messagesAfterAssistant
                                 _uiState.update {
@@ -215,7 +234,6 @@ class ChatViewModel(
                                 }
                                 loadSession(sessionId)
                             } catch (e: Exception) {
-                                Log.e("ChatViewModel", "Local streaming error: ${e.message}", e)
                                 _uiState.update {
                                     it.copy(
                                         isLoading = false,
@@ -226,8 +244,6 @@ class ChatViewModel(
                                 }
                             }
                         }
-                    } else {
-                        // Non-streaming logic for local model would go here
                     }
                     return@launch
                 }
@@ -245,8 +261,6 @@ class ChatViewModel(
                     settingsDataStore.getOpenRouterModel.first()
                 }
                 val apiEndpoint = if (isHuggingFace) settingsDataStore.getApiEndpoint.first() else "https://api.openrouter.ai/api/v1/"
-
-                Log.d("ChatViewModel", "API Endpoint: $apiEndpoint, Model: $model")
 
                 if (apiKey.isEmpty() || model.isEmpty() || (isHuggingFace && apiEndpoint.isEmpty())) {
                     _uiState.update {
@@ -275,7 +289,6 @@ class ChatViewModel(
                             OpenRouterApiService.createStreamingClient(apiKey, request).collect { chunk ->
                                 if (chunk.isNotEmpty()) {
                                     fullResponse += chunk
-                                    Log.d("ChatViewModel", "Streaming chunk received: $chunk, Full: $fullResponse")
                                     _uiState.update {
                                         it.copy(
                                             streamingMessage = fullResponse,
@@ -286,9 +299,7 @@ class ChatViewModel(
                             }
                             val assistantMessage = ChatMessage(content = fullResponse, isUser = false, sessionId = sessionId)
                             chatRepository.insertChatMessage(assistantMessage)
-                            Log.d("ChatViewModel", "Assistant message inserted: $fullResponse")
                             val messagesAfterAssistant = chatRepository.getMessagesBySession(sessionId).first()
-                            Log.d("ChatViewModel", "Messages after assistant message for session $sessionId: ${messagesAfterAssistant.size}, Contents: ${messagesAfterAssistant.map { it.content }}")
                             _messagesFlow.value = messagesAfterAssistant
                             _uiState.update {
                                 it.copy(
@@ -299,7 +310,6 @@ class ChatViewModel(
                             }
                             loadSession(sessionId)
                         } catch (e: Exception) {
-                            Log.e("ChatViewModel", "Streaming error: ${e.message}", e)
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
@@ -347,15 +357,12 @@ class ChatViewModel(
                     }
                     val assistantMessage = ChatMessage(content = responseText, isUser = false, sessionId = sessionId)
                     chatRepository.insertChatMessage(assistantMessage)
-                    Log.d("ChatViewModel", "Assistant message inserted: $responseText")
                     val messagesAfterAssistant = chatRepository.getMessagesBySession(sessionId).first()
-                    Log.d("ChatViewModel", "Messages after assistant message for session $sessionId: ${messagesAfterAssistant.size}, Contents: ${messagesAfterAssistant.map { it.content }}")
                     _messagesFlow.value = messagesAfterAssistant
                     _uiState.update { it.copy(isLoading = false, streamingMessage = "", messages = messagesAfterAssistant) }
                     loadSession(sessionId)
                 }
             } catch (e: UnknownHostException) {
-                Log.e("ChatViewModel", "No internet connection: ${e.message}", e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -365,7 +372,6 @@ class ChatViewModel(
                     )
                 }
             } catch (e: IOException) {
-                Log.e("ChatViewModel", "Network error: ${e.message}", e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -375,7 +381,6 @@ class ChatViewModel(
                     )
                 }
             } catch (e: Exception) {
-                Log.e("ChatViewModel", "Unexpected error: ${e.message}", e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -399,11 +404,12 @@ class ChatViewModel(
 
     fun clearMessages() {
         viewModelScope.launch {
-            Log.d("ChatViewModel", "Clearing all sessions and messages")
             chatRepository.deleteAllSessions()
             startNewSession()
         }
     }
+
+
 
     fun startNewChat() {
         startNewSession()

@@ -9,11 +9,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 
 class LlmInferenceHelper(
     private val context: Context,
@@ -25,7 +27,7 @@ class LlmInferenceHelper(
 
     suspend fun loadModelAndPrepareInterpreter(modelId: String) {
         if (currentModel?.id == modelId && isInterpreterReady) {
-            Log.d("LlmInferenceHelper", "Interpreter for $modelId is already loaded and ready.")
+            Log.d("LlmInferenceHelper", "Interpreter for $modelId is already loaded.")
             return
         }
 
@@ -33,13 +35,12 @@ class LlmInferenceHelper(
             try {
                 isInterpreterReady = false
                 interpreter?.close()
-
                 Log.d("LlmInferenceHelper", "Loading model file for $modelId...")
                 val modelFile = getModelFile(modelId)
 
                 Log.d("LlmInferenceHelper", "Initializing TFLite interpreter for $modelId...")
                 val options = Interpreter.Options().apply {
-                    addDelegate(org.tensorflow.lite.nnapi.NnApiDelegate())
+                    setNumThreads(4)
                 }
                 interpreter = Interpreter(modelFile, options)
 
@@ -59,25 +60,38 @@ class LlmInferenceHelper(
             throw IllegalStateException("Interpreter is not ready. Call loadModelAndPrepareInterpreter first.")
         }
 
-        val inputBuffer = prepareInput(inputText)
+        val inputTensor = interpreter!!.getInputTensor(0)
+        val maxInputLength = inputTensor.shape()[1]
+        var currentTokens = tokenizeInput(inputText, maxInputLength)
 
-        val outputs = mutableMapOf<Int, Any>()
-        val outputTensor = interpreter!!.getOutputTensor(0)
-        val outputBuffer = ByteBuffer.allocateDirect(outputTensor.numBytes())
-            .order(ByteOrder.nativeOrder())
-        outputs[0] = outputBuffer
+        val maxOutputTokens = 100
+        val eosToken = -1
 
-        val inputs = arrayOf<Any>(inputBuffer)
+        for (i in 0 until maxOutputTokens) {
+            val inputBuffer = prepareInput(currentTokens, maxInputLength)
+            val outputs = mutableMapOf<Int, Any>()
+            val outputTensor = interpreter!!.getOutputTensor(0)
+            val outputBuffer = ByteBuffer.allocateDirect(outputTensor.numBytes()).order(ByteOrder.nativeOrder())
+            outputs[0] = outputBuffer
 
-        interpreter!!.runForMultipleInputsOutputs(inputs, outputs)
+            val inputs = arrayOf<Any>(inputBuffer)
+            interpreter!!.runForMultipleInputsOutputs(inputs, outputs)
 
-        val fullResponse = decodeOutput(outputs[0] as ByteBuffer)
+            val outputLogits = (outputs[0] as ByteBuffer).asFloatBuffer()
+            val nextToken = argmax(outputLogits)
 
-        fullResponse.split(" ").forEach { word ->
-            emit("$word ")
+            if (nextToken == eosToken) {
+                break
+            }
+
+            currentTokens = currentTokens.drop(1) + nextToken
+
+            val decodedWord = decodeOutput(nextToken)
+            emit("$decodedWord ")
             delay(50)
         }
     }
+        .flowOn(Dispatchers.Default) // <-- THIS IS THE FIX
 
     private fun getModelFile(modelId: String): File {
         val model = modelDownloaderViewModel.uiState.value.models.find { it.id == modelId }
@@ -94,39 +108,37 @@ class LlmInferenceHelper(
         return modelFile
     }
 
-    private fun prepareInput(inputText: String): ByteBuffer {
-        val inputTensor = interpreter?.getInputTensor(0) ?: throw IllegalStateException("Interpreter not loaded")
-        val inputShape = inputTensor.shape()
-        val maxInputLength = inputShape.getOrElse(1) { 0 }
-
-        if (maxInputLength == 0) throw IllegalStateException("Invalid input tensor shape: ${inputShape.joinToString()}")
-
-        val tokens = tokenizeInput(inputText, maxInputLength)
-
-        val byteBufferSize = maxInputLength * inputTensor.dataType().byteSize()
+    private fun prepareInput(tokens: List<Int>, maxInputLength: Int): ByteBuffer {
+        val paddedTokens = tokens.padEnd(maxInputLength, 0)
+        val byteBufferSize = maxInputLength * 4
         return ByteBuffer.allocateDirect(byteBufferSize).apply {
             order(ByteOrder.nativeOrder())
-            tokens.forEach { putInt(it) }
+            paddedTokens.forEach { putInt(it) }
             rewind()
         }
     }
 
     private fun tokenizeInput(inputText: String, maxLength: Int): List<Int> {
         val words = inputText.split(" ").take(maxLength)
-        return words.mapIndexed { index, _ -> index + 1 }.padEnd(maxLength, 0)
+        return words.mapIndexed { index, _ -> index + 1 }
     }
 
-    private fun decodeOutput(outputBuffer: ByteBuffer): String {
-        outputBuffer.rewind()
-        val outputTensor = interpreter?.getOutputTensor(0) ?: throw IllegalStateException("Interpreter not loaded")
-        val outputLength = outputTensor.shape()[1]
+    private fun decodeOutput(token: Int): String {
+        return "word${token}"
+    }
 
-        val outputTokens = IntArray(outputLength)
-        outputBuffer.asIntBuffer().get(outputTokens)
-
-        return outputTokens.filter { it != 0 }
-            .mapIndexed { index, _ -> "word${index + 1}" }
-            .joinToString(" ")
+    private fun argmax(buffer: FloatBuffer): Int {
+        var maxVal = -Float.MAX_VALUE
+        var maxIdx = -1
+        buffer.rewind()
+        for (i in 0 until buffer.remaining()) {
+            val currentVal = buffer.get(i)
+            if (currentVal > maxVal) {
+                maxVal = currentVal
+                maxIdx = i
+            }
+        }
+        return maxIdx
     }
 
     private fun List<Int>.padEnd(length: Int, padValue: Int): List<Int> {
