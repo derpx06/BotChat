@@ -1,5 +1,6 @@
 package com.example.ChatBlaze.ui.components.chat
 
+import android.app.Application
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,11 +23,13 @@ fun ChatScreen(
 ) {
     val context = LocalContext.current
     val modelDao = remember { modelDatabase.getDatabase(context).modelDao() }
+    val application = (LocalContext.current.applicationContext as Application)
+
     val chatViewModel: ChatViewModel = viewModel(
         factory = ChatViewModelFactory(
             dataStore = UserSettingsDataStore(context),
             chatRepository = ChatRepository(ChatDatabase.getDatabase(context).chatDao()),
-            context = context
+            application = application
         )
     )
     val settingViewModel: SettingViewModel = viewModel(

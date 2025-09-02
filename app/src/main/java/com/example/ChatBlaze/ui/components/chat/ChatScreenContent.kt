@@ -1,5 +1,8 @@
 package com.example.ChatBlaze.ui.components.chat
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -18,6 +21,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ChatBlaze.data.database.modelDatabase.modelDao
 import com.example.ChatBlaze.ui.components.settings.SettingsSheetBottom
@@ -27,9 +31,6 @@ import com.example.ChatBlaze.ui.viewmodel.Chat.FileType
 import com.example.ChatBlaze.ui.viewmodel.Chat.SelectedFile
 import com.example.ChatBlaze.ui.viewmodel.setting.SettingViewModel
 
-val PaddingTiny = 4.dp
-val PaddingSmall = 8.dp
-val PaddingMedium = 12.dp
 private val PaddingLarge = 16.dp
 
 @Composable
@@ -44,16 +45,28 @@ fun ChatScreenContent(
 ) {
     val uiState by chatViewModel.uiState.collectAsStateWithLifecycle()
     val selectedFiles by chatViewModel.selectedFiles.collectAsStateWithLifecycle()
+    val isRecording by chatViewModel.isRecording.collectAsStateWithLifecycle()
     val isDarkTheme = settingViewModel.getDarkModeEnabled()
     val selectedTheme by settingViewModel.theme.collectAsStateWithLifecycle(initialValue = "gradient")
     val showSettings by remember { derivedStateOf { settingViewModel.showSettings } }
 
     val context = LocalContext.current
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            chatViewModel.startSpeechToText()
+        }
+    }
+
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenMultipleDocuments(),
         onResult = { uris: List<Uri> ->
             val selectedFilesList = uris.mapNotNull { uri ->
+                val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                context.contentResolver.takePersistableUriPermission(uri, flags)
+
                 val cursor = context.contentResolver.query(uri, null, null, null, null)
                 cursor?.use {
                     if (it.moveToFirst()) {
@@ -75,165 +88,122 @@ fun ChatScreenContent(
         }
     )
 
-    AnimatedVisibility(
-        visible = true,
-        enter = fadeIn(animationSpec = tween(300)) + slideInVertically(
-            initialOffsetY = { it / 10 },
-            animationSpec = spring(dampingRatio = 0.7f)
-        ) + expandVertically(animationSpec = spring(dampingRatio = 0.7f)),
-        exit = fadeOut(animationSpec = tween(300)) + slideOutVertically(
-            targetOffsetY = { it / 10 },
-            animationSpec = spring(dampingRatio = 0.7f)
-        )
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                brush = if (isDarkTheme) BackgroundGradientDark else BackgroundGradientLight,
+                alpha = 0.9f
+            ),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(
-                    brush = if (isDarkTheme) BackgroundGradientDark else BackgroundGradientLight,
-                    alpha = 0.9f
-                ),
-            contentAlignment = Alignment.BottomCenter
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Top
-            ) {
-                TopBar(
-                    onMenuClick = onDrawerClicked,
-                    isDarkTheme = isDarkTheme,
-                    modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)
-                )
-                ChatMessages(
-                    messages = uiState.messages,
-                    isLoading = uiState.isLoading,
-                    theme = selectedTheme,
-                    streamingMessage = uiState.streamingMessage,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    isDarkTheme = isDarkTheme,
-                    isModelLoading = isModelLoading
-                )
-            }
-            ChatInputSection(
-                inputText = uiState.inputText,
-                onInputChange = chatViewModel::updateInputText,
-                onSendClick = chatViewModel::sendMessage,
-                onStopClick = chatViewModel::cancelProcessing,
-                isLoading = uiState.isLoading,
+            TopBar(
+                onMenuClick = onDrawerClicked,
                 isDarkTheme = isDarkTheme,
-                useGradientTheme = selectedTheme == "gradient",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = PaddingLarge, vertical = PaddingLarge),
-                selectedFiles = selectedFiles,
-                onAddFileClick = {
-                    filePickerLauncher.launch(arrayOf("image/*", "application/pdf"))
-                },
-                onRemoveFile = chatViewModel::removeFile
+                modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)
             )
-            AnimatedVisibility(
-                visible = uiState.showErrorDialog && uiState.errorMessage != null,
-                enter = fadeIn(animationSpec = tween(200)) + scaleIn(
-                    initialScale = 0.9f,
-                    animationSpec = spring(dampingRatio = 0.8f)
-                ),
-                exit = fadeOut(animationSpec = tween(200)) + scaleOut(targetScale = 0.9f)
-            ) {
-                uiState.errorMessage?.let { errorMessage ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.7f) else CloudWhite.copy(
-                                    alpha = 0.7f
-                                )
-                            )
-                            .border(
-                                width = 0.75.dp,
-                                brush = if (isDarkTheme) Brush.linearGradient(
-                                    listOf(
-                                        NeonBlue,
-                                        ElectricCyan
-                                    )
-                                ) else Brush.linearGradient(listOf(Aquamarine, Purple40)),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                    ) {
-                        ErrorDialog(
-                            errorMessage = errorMessage,
-                            isDarkTheme = isDarkTheme,
-                            onDismiss = chatViewModel::clearError,
-                            onRetry = uiState.retryAction,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(24.dp)
-                                .shadow(4.dp, RoundedCornerShape(12.dp))
-                                .background(
-                                    color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.95f) else CloudWhite.copy(
-                                        alpha = 0.95f
-                                    ),
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .padding(12.dp)
-                        )
-                    }
-                }
-            }
+            ChatMessages(
+                messages = uiState.messages,
+                isLoading = uiState.isLoading,
+                theme = selectedTheme,
+                streamingMessage = uiState.streamingMessage,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                isDarkTheme = isDarkTheme,
+                isModelLoading = isModelLoading
+            )
+        }
 
-            AnimatedVisibility(
-                visible = showSettings,
-                enter = slideInVertically(
-                    initialOffsetY = { it },
-                    animationSpec = spring(dampingRatio = 0.8f)
-                ) + fadeIn(animationSpec = tween(300)),
-                exit = slideOutVertically(
-                    targetOffsetY = { it },
-                    animationSpec = spring(dampingRatio = 0.8f)
-                ) + fadeOut(animationSpec = tween(300))
-            ) {
-                Box(
+        ChatInputSection(
+            inputText = uiState.inputText,
+            onInputChange = chatViewModel::updateInputText,
+            onSendClick = chatViewModel::sendMessage,
+            onStopClick = chatViewModel::cancelProcessing,
+            onMicClick = {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                    chatViewModel.startSpeechToText()
+                } else {
+                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }
+            },
+            isLoading = uiState.isLoading,
+            isRecording = isRecording,
+            isDarkTheme = isDarkTheme,
+            useGradientTheme = selectedTheme == "gradient",
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = PaddingLarge, vertical = PaddingLarge),
+            selectedFiles = selectedFiles,
+            onAddFileClick = {
+                filePickerLauncher.launch(arrayOf("image/*", "application/pdf"))
+            },
+            onRemoveFile = chatViewModel::removeFile
+        )
+
+        AnimatedVisibility(
+            visible = uiState.showErrorDialog && uiState.errorMessage != null,
+            enter = fadeIn(animationSpec = tween(200)) + scaleIn(
+                initialScale = 0.9f,
+                animationSpec = spring(dampingRatio = 0.8f)
+            ),
+            exit = fadeOut(animationSpec = tween(200)) + scaleOut(targetScale = 0.9f)
+        ) {
+            uiState.errorMessage?.let { errorMessage ->
+                ErrorDialog(
+                    errorMessage = errorMessage,
+                    isDarkTheme = isDarkTheme,
+                    onDismiss = chatViewModel::clearError,
+                    onRetry = uiState.retryAction,
                     modifier = Modifier
-                        .fillMaxSize()
+                        .align(Alignment.Center)
+                        .padding(24.dp)
+                        .shadow(4.dp, RoundedCornerShape(12.dp))
                         .background(
-                            color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.7f) else CloudWhite.copy(
-                                alpha = 0.7f
-                            )
-                        )
-                        .border(
-                            width = 0.75.dp,
-                            brush = if (isDarkTheme) Brush.linearGradient(
-                                listOf(
-                                    NeonBlue,
-                                    ElectricCyan
-                                )
-                            ) else Brush.linearGradient(listOf(Aquamarine, Purple40)),
+                            color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.95f) else CloudWhite.copy(
+                                alpha = 0.95f
+                            ),
                             shape = RoundedCornerShape(12.dp)
                         )
-                ) {
-                    SettingsSheetBottom(
-                        viewModel = settingViewModel,
-                        onDismiss = { settingViewModel.toggleSettings() },
-                        onNavigateToModels = onNavigateToModels,
-                        modelDao = modelDao,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp)
-                            .shadow(4.dp, RoundedCornerShape(12.dp))
-                            .background(
-                                color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.95f) else CloudWhite.copy(
-                                    alpha = 0.95f
-                                ),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .padding(12.dp)
-                    )
-                }
+                        .padding(12.dp)
+                )
             }
+        }
+
+        AnimatedVisibility(
+            visible = showSettings,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = spring(dampingRatio = 0.8f)
+            ) + fadeIn(animationSpec = tween(300)),
+            exit = slideOutVertically(
+                targetOffsetY = { it },
+                animationSpec = spring(dampingRatio = 0.8f)
+            ) + fadeOut(animationSpec = tween(300))
+        ) {
+            SettingsSheetBottom(
+                viewModel = settingViewModel,
+                onDismiss = { settingViewModel.toggleSettings() },
+                onNavigateToModels = onNavigateToModels,
+                modelDao = modelDao,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+                    .shadow(4.dp, RoundedCornerShape(12.dp))
+                    .background(
+                        color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.95f) else CloudWhite.copy(
+                            alpha = 0.95f
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(12.dp)
+            )
         }
     }
 }
+

@@ -110,7 +110,9 @@ private sealed class ParsedContent {
     data class TextContent(val text: AnnotatedString) : ParsedContent()
     data class CodeContent(val language: String, val code: String) : ParsedContent()
 }
-
+val PaddingTiny = 4.dp
+val PaddingSmall = 8.dp
+val PaddingMedium = 12.dp
 @Composable
 fun ChatMessages(
     messages: List<ChatMessage>,

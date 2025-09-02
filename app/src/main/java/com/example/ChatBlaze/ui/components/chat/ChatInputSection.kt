@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.*
@@ -23,18 +24,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import com.example.ChatBlaze.ui.viewmodel.Chat.FileType
 import com.example.ChatBlaze.ui.viewmodel.Chat.SelectedFile
+
+private enum class ButtonState {
+    Mic, Send, Loading, Recording
+}
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -43,7 +47,9 @@ fun ChatInputSection(
     onInputChange: (String) -> Unit,
     onSendClick: () -> Unit,
     onStopClick: () -> Unit,
+    onMicClick: () -> Unit,
     isLoading: Boolean,
+    isRecording: Boolean,
     selectedFiles: List<SelectedFile>,
     onAddFileClick: () -> Unit,
     onRemoveFile: (SelectedFile) -> Unit,
@@ -56,17 +62,30 @@ fun ChatInputSection(
     val textColor = if (isDarkTheme) Color.White else Color.Black
     val placeholderColor = if (isDarkTheme) Color(0xFF9E9E9E) else Color(0xFF8A8A8A)
     val sendButtonActiveColor = Color(0xFF2A9D8F)
-    val sendButtonInactiveColor = if (isDarkTheme) Color(0xFF3A3A3C) else Color(0xFFE5E5EA)
-    val sendEnabled = (inputText.isNotBlank() || selectedFiles.isNotEmpty()) && !isLoading
+    val micButtonColor = if (isDarkTheme) Color(0xFF48484A) else Color(0xFFDCDFE3)
+
+    val buttonState by remember(inputText, selectedFiles, isLoading, isRecording) {
+        derivedStateOf {
+            when {
+                isLoading -> ButtonState.Loading
+                isRecording -> ButtonState.Recording
+                inputText.isNotBlank() || selectedFiles.isNotEmpty() -> ButtonState.Send
+                else -> ButtonState.Mic
+            }
+        }
+    }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+        shape = RoundedCornerShape(24.dp),
         color = Color.Transparent,
+        shadowElevation = 4.dp
     ) {
         Column(
-            modifier = Modifier
-                .background(Color.Black.copy(alpha = 0.3f))
+            modifier = Modifier.background(
+                if (isDarkTheme) Color.Black.copy(alpha = 0.3f)
+                else Color.White.copy(alpha = 0.5f)
+            )
         ) {
             AnimatedVisibility(visible = selectedFiles.isNotEmpty()) {
                 FileThumbnails(
@@ -80,7 +99,7 @@ fun ChatInputSection(
             Row(
                 modifier = Modifier.padding(vertical = 13.dp, horizontal = 10.dp),
                 verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 IconButton(
                     onClick = onAddFileClick,
@@ -92,9 +111,10 @@ fun ChatInputSection(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "Add Attachment",
-                        tint = iconColor.copy(alpha = 1f)
+                        tint = iconColor
                     )
                 }
+
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -102,7 +122,7 @@ fun ChatInputSection(
                         .background(textFieldBackgroundColor)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         BasicTextField(
@@ -142,12 +162,6 @@ fun ChatInputSection(
                                 modifier = Modifier
                                     .size(20.dp)
                                     .clip(CircleShape)
-                                    .background(
-                                        if (isDarkTheme) Color.Gray.copy(alpha = 0.3f) else Color.Gray.copy(
-                                            alpha = 0.2f
-                                        )
-                                    )
-                                    .padding(2.dp)
                                     .clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null,
@@ -157,49 +171,55 @@ fun ChatInputSection(
                         }
                     }
                 }
+
+                val buttonBackgroundColor = when (buttonState) {
+                    ButtonState.Send, ButtonState.Loading, ButtonState.Recording -> sendButtonActiveColor
+                    ButtonState.Mic -> micButtonColor
+                }
+
                 IconButton(
-                    onClick = if (isLoading) onStopClick else onSendClick,
-                    enabled = sendEnabled || isLoading,
+                    onClick = {
+                        when (buttonState) {
+                            ButtonState.Mic, ButtonState.Recording -> onMicClick()
+                            ButtonState.Send -> onSendClick()
+                            ButtonState.Loading -> onStopClick()
+                        }
+                    },
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(
-                            brush = Brush.linearGradient(
-                                if (sendEnabled || isLoading)
-                                    listOf(
-                                        sendButtonActiveColor,
-                                        sendButtonActiveColor.copy(alpha = 0.85f)
-                                    )
-                                else
-                                    listOf(sendButtonInactiveColor, sendButtonInactiveColor)
-                            )
-                        )
+                        .background(buttonBackgroundColor)
                 ) {
                     AnimatedContent(
-                        targetState = Pair(isLoading, sendEnabled),
+                        targetState = buttonState,
                         transitionSpec = {
-                            (slideInVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium)) { it } + fadeIn() with
-                                    slideOutVertically(animationSpec = spring(stiffness = Spring.StiffnessMedium)) { -it } + fadeOut())
+                            (fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium)) + scaleIn() with
+                                    fadeOut(animationSpec = spring(stiffness = Spring.StiffnessLow)) + scaleOut())
                                 .using(SizeTransform(clip = false))
                         },
                         label = "SendButtonAnimation"
-                    ) { (loading, enabled) ->
-                        when {
-                            loading -> CircularProgressIndicator(
+                    ) { state ->
+                        when (state) {
+                            ButtonState.Loading -> CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
                                 color = Color.White,
                                 strokeWidth = 2.5.dp
                             )
-                            enabled -> Icon(
+                            ButtonState.Send -> Icon(
                                 imageVector = Icons.Rounded.Send,
                                 contentDescription = "Send",
                                 tint = Color.White,
                                 modifier = Modifier.offset(x = (-2).dp)
                             )
-                            else -> Icon(
-                                imageVector = Icons.Rounded.Send,
-                                contentDescription = "Send",
-                                tint = if (isDarkTheme) Color(0xFF6E6E72) else Color(0xFFBDBDC2)
+                            ButtonState.Recording -> Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = "Stop Recording",
+                                tint = Color.White
+                            )
+                            ButtonState.Mic -> Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = "Voice Input",
+                                tint = iconColor
                             )
                         }
                     }
@@ -208,41 +228,6 @@ fun ChatInputSection(
         }
     }
 }
-
-@OptIn(ExperimentalAnimationApi::class)
-@Preview
-@Composable
-fun ChatInputSectionPreview() {
-    var inputText by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    val selectedFiles = remember { mutableStateListOf<SelectedFile>() }
-
-    ChatInputSection(
-        inputText = inputText,
-        onInputChange = { inputText = it },
-        onSendClick = { isLoading = true },
-        onStopClick = { isLoading = false },
-        isLoading = isLoading,
-        selectedFiles = selectedFiles,
-        onAddFileClick = {
-            selectedFiles.add(SelectedFile(Uri.EMPTY, FileType.IMAGE, "image.jpg"))
-            selectedFiles.add(SelectedFile(Uri.EMPTY, FileType.PDF, "document.pdf"))
-        },
-        onRemoveFile = { selectedFiles.remove(it) },
-        isDarkTheme = true
-    )
-}
-
-@Preview
-@Composable
-fun FileThumbnailsPreview() {
-    val files = listOf(
-        SelectedFile(Uri.parse("https://example.com/image.jpg"), FileType.IMAGE, "Image.jpg"),
-        SelectedFile(Uri.parse("https://example.com/document.pdf"), FileType.PDF, "Document.pdf")
-    )
-    FileThumbnails(files = files, onRemoveFile = {}, isDarkTheme = false)
-}
-
 
 @Composable
 fun FileThumbnails(
@@ -253,7 +238,8 @@ fun FileThumbnails(
 ) {
     LazyRow(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp)
     ) {
         items(files) { file ->
             Box(
@@ -302,7 +288,7 @@ fun FileThumbnails(
                         .padding(4.dp)
                         .size(20.dp)
                         .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.5f))
+                        .background(Color.Black.copy(alpha = 0.6f))
                         .clickable { onRemoveFile(file) },
                     contentAlignment = Alignment.Center
                 ) {
@@ -317,3 +303,101 @@ fun FileThumbnails(
         }
     }
 }
+
+
+@Preview(name = "Chat Input - Mic State (Dark)")
+@Composable
+private fun ChatInputMicDarkPreview() {
+    ChatInputSection(
+        inputText = "",
+        onInputChange = {},
+        onSendClick = {},
+        onStopClick = {},
+        onMicClick = {},
+        isLoading = false,
+        isRecording = false,
+        selectedFiles = emptyList(),
+        onAddFileClick = {},
+        onRemoveFile = {},
+        isDarkTheme = true
+    )
+}
+
+@Preview(name = "Chat Input - Recording State (Dark)")
+@Composable
+private fun ChatInputRecordingDarkPreview() {
+    ChatInputSection(
+        inputText = "",
+        onInputChange = {},
+        onSendClick = {},
+        onStopClick = {},
+        onMicClick = {},
+        isLoading = false,
+        isRecording = true,
+        selectedFiles = emptyList(),
+        onAddFileClick = {},
+        onRemoveFile = {},
+        isDarkTheme = true
+    )
+}
+
+@Preview(name = "Chat Input - With Text (Dark)")
+@Composable
+private fun ChatInputTextDarkPreview() {
+    ChatInputSection(
+        inputText = "Hello World",
+        onInputChange = {},
+        onSendClick = {},
+        onStopClick = {},
+        onMicClick = {},
+        isLoading = false,
+        isRecording = false,
+        selectedFiles = emptyList(),
+        onAddFileClick = {},
+        onRemoveFile = {},
+        isDarkTheme = true
+    )
+}
+
+@Preview(name = "Chat Input - Loading (Light)")
+@Composable
+private fun ChatInputLoadingLightPreview() {
+    ChatInputSection(
+        inputText = "Generating a story...",
+        onInputChange = {},
+        onSendClick = {},
+        onStopClick = {},
+        onMicClick = {},
+        isLoading = true,
+        isRecording = false,
+        selectedFiles = emptyList(),
+        onAddFileClick = {},
+        onRemoveFile = {},
+        isDarkTheme = false
+    )
+}
+
+@Preview(name = "Chat Input - With Files (Light)")
+@Composable
+private fun ChatInputWithFilesLightPreview() {
+    val files = remember {
+        mutableStateListOf(
+            SelectedFile(Uri.EMPTY, FileType.IMAGE, "vacation.jpg"),
+            SelectedFile(Uri.EMPTY, FileType.PDF, "project-brief.pdf")
+        )
+    }
+    ChatInputSection(
+        inputText = "Here are the files",
+        onInputChange = {},
+        onSendClick = {},
+        onStopClick = {},
+        onMicClick = {},
+        isLoading = false,
+        isRecording = false,
+        selectedFiles = files,
+        onAddFileClick = {},
+        onRemoveFile = { files.remove(it) },
+        isDarkTheme = false
+    )
+}
+
