@@ -11,20 +11,16 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ChatBlaze.data.database.modelDatabase.modelDao
-import com.example.ChatBlaze.ui.components.settings.SettingsSheetBottom
 import com.example.ChatBlaze.ui.theme.*
 import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModel
 import com.example.ChatBlaze.ui.viewmodel.Chat.FileType
@@ -37,9 +33,7 @@ private val PaddingLarge = 16.dp
 fun ChatScreenContent(
     chatViewModel: ChatViewModel,
     settingViewModel: SettingViewModel,
-    onNavigateToModels: () -> Unit,
     onDrawerClicked: () -> Unit,
-    modelDao: modelDao,
     modifier: Modifier = Modifier,
     isModelLoading: Boolean
 ) {
@@ -48,7 +42,6 @@ fun ChatScreenContent(
     val isRecording by chatViewModel.isRecording.collectAsStateWithLifecycle()
     val isDarkTheme = settingViewModel.getDarkModeEnabled()
     val selectedTheme by settingViewModel.theme.collectAsStateWithLifecycle(initialValue = "gradient")
-    val showSettings by remember { derivedStateOf { settingViewModel.showSettings } }
 
     val context = LocalContext.current
 
@@ -114,7 +107,6 @@ fun ChatScreenContent(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                isDarkTheme = isDarkTheme,
                 isModelLoading = isModelLoading
             )
         }
@@ -174,36 +166,5 @@ fun ChatScreenContent(
                 )
             }
         }
-
-        AnimatedVisibility(
-            visible = showSettings,
-            enter = slideInVertically(
-                initialOffsetY = { it },
-                animationSpec = spring(dampingRatio = 0.8f)
-            ) + fadeIn(animationSpec = tween(300)),
-            exit = slideOutVertically(
-                targetOffsetY = { it },
-                animationSpec = spring(dampingRatio = 0.8f)
-            ) + fadeOut(animationSpec = tween(300))
-        ) {
-            SettingsSheetBottom(
-                viewModel = settingViewModel,
-                onDismiss = { settingViewModel.toggleSettings() },
-                onNavigateToModels = onNavigateToModels,
-                modelDao = modelDao,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-                    .shadow(4.dp, RoundedCornerShape(12.dp))
-                    .background(
-                        color = if (isDarkTheme) MidnightBlack.copy(alpha = 0.95f) else CloudWhite.copy(
-                            alpha = 0.95f
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .padding(12.dp)
-            )
-        }
     }
 }
-
