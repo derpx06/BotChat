@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 private enum class DrawerState { Open, Closed }
-private enum class Screen { Chat, Settings, Models, ClearChat, ModelDownloader }
+private enum class DrawerScreen { Chat, Settings, Models, ClearChat, ModelDownloader }
 
 private val DrawerWidth = 250.dp
 
@@ -49,6 +49,7 @@ private val DrawerWidth = 250.dp
 fun ChatDrawer(
     chatViewModel: ChatViewModel,
     settingViewModel: SettingViewModel,
+    onNavigateToSettings: () -> Unit,
     onNavigateToModels: () -> Unit,
     onNavigateToDownloader: () -> Unit,
     modelDao: modelDao,
@@ -112,11 +113,11 @@ fun ChatDrawer(
             chatViewModel = chatViewModel,
             onScreenSelected = { screen ->
                 when (screen) {
-                    Screen.Settings -> settingViewModel.toggleSettings()
-                    Screen.Models -> onNavigateToModels()
-                    Screen.ModelDownloader -> onNavigateToDownloader()
-                    Screen.ClearChat -> chatViewModel.clearMessages()
-                    Screen.Chat -> {}
+                    DrawerScreen.Settings -> onNavigateToSettings()
+                    DrawerScreen.Models -> onNavigateToModels()
+                    DrawerScreen.ModelDownloader -> onNavigateToDownloader()
+                    DrawerScreen.ClearChat -> chatViewModel.clearMessages()
+                    DrawerScreen.Chat -> {}
                 }
                 coroutineScope.launch { closeDrawer() }
             }
@@ -160,9 +161,7 @@ fun ChatDrawer(
             ChatScreenContent(
                 chatViewModel = chatViewModel,
                 settingViewModel = settingViewModel,
-                onNavigateToModels = onNavigateToModels,
                 onDrawerClicked = ::toggleDrawer,
-                modelDao = modelDao,
                 isModelLoading = isModelLoading,
             )
         }
@@ -172,7 +171,7 @@ fun ChatDrawer(
 @Composable
 private fun ChatDrawerContents(
     chatViewModel: ChatViewModel,
-    onScreenSelected: (Screen) -> Unit,
+    onScreenSelected: (DrawerScreen) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by chatViewModel.uiState.collectAsStateWithLifecycle()
@@ -222,7 +221,7 @@ private fun ChatDrawerContents(
                             modifier = Modifier
                                 .clickable {
                                     chatViewModel.loadSession(session.sessionId)
-                                    onScreenSelected(Screen.Chat)
+                                    onScreenSelected(DrawerScreen.Chat)
                                 }
                                 .fillMaxWidth()
                                 .padding(start = 20.dp, end = 8.dp),
@@ -266,23 +265,23 @@ private fun ChatDrawerContents(
                     icon = Icons.Outlined.AddComment,
                     onClick = {
                         chatViewModel.startNewChat()
-                        onScreenSelected(Screen.Chat)
+                        onScreenSelected(DrawerScreen.Chat)
                     }
                 )
                 DrawerIconButton(
                     label = "Download",
                     icon = Icons.Outlined.Download,
-                    onClick = { onScreenSelected(Screen.ModelDownloader) }
+                    onClick = { onScreenSelected(DrawerScreen.ModelDownloader) }
                 )
                 DrawerIconButton(
                     label = "Settings",
                     icon = Icons.Outlined.Settings,
-                    onClick = { onScreenSelected(Screen.Settings) }
+                    onClick = { onScreenSelected(DrawerScreen.Settings) }
                 )
                 DrawerIconButton(
                     label = "Clear",
                     icon = Icons.Outlined.DeleteSweep,
-                    onClick = { onScreenSelected(Screen.ClearChat) },
+                    onClick = { onScreenSelected(DrawerScreen.ClearChat) },
                     isDestructive = true
                 )
             }
