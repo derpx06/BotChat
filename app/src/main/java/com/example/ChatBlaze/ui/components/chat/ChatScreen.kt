@@ -19,7 +19,8 @@ import com.example.ChatBlaze.ui.viewmodel.Chat.ChatViewModelFactory
 @Composable
 fun ChatScreen(
     onNavigateToModels: () -> Unit,
-    onNavigateToDownloader: () -> Unit
+    onNavigateToDownloader: () -> Unit,
+    onNavigateToSettings:()-> Unit
 ) {
     val context = LocalContext.current
     val modelDao = remember { modelDatabase.getDatabase(context).modelDao() }
@@ -43,6 +44,7 @@ fun ChatScreen(
         onNavigateToModels = onNavigateToModels,
         onNavigateToDownloader = onNavigateToDownloader,
         modelDao = modelDao,
-        isModelLoading = uiState.isModelLoading
+        isModelLoading = uiState.isModelLoading,
+        onNavigateToSettings = onNavigateToSettings
     )
 }
